@@ -15,6 +15,67 @@ const router = express.Router();
 const masterDb = require("../db/masterDb");
 const { getTenantDb, deleteTenantDb } = require("../db/tenantDb");
 
+// ── Welcome email ─────────────────────────────────────────────
+async function sendWelcomeEmail(ownerName, email, subdomain) {
+  if (!email || !email.includes("@")) return;
+  try {
+    const nodemailer = require("nodemailer");
+    const EMAIL_USER = process.env.EMAIL_USER || "";
+    const EMAIL_PASS = process.env.EMAIL_PASS || "";
+    if (!EMAIL_USER || !EMAIL_PASS) return;
+
+    const BASE_DOMAIN = process.env.BASE_DOMAIN || "";
+    const loginUrl = BASE_DOMAIN
+      ? `https://${subdomain}.${BASE_DOMAIN}/app`
+      : `https://${subdomain}.onrender.com/app`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+    });
+
+    await transporter.sendMail({
+      from: `"CafeBill" <${EMAIL_USER}>`,
+      to: email,
+      subject: "Your CafeBill account is ready! ☕",
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;border:1px solid #eee;border-radius:12px;overflow:hidden">
+          <div style="background:#ea580c;padding:28px;text-align:center">
+            <h2 style="color:white;margin:0;font-size:24px">☕ CafeBill</h2>
+            <p style="color:#fed7aa;margin:6px 0 0">Your billing account is ready</p>
+          </div>
+          <div style="padding:32px">
+            <p style="color:#374151;font-size:16px">Hi <b>${ownerName}</b>,</p>
+            <p style="color:#374151">Your CafeBill account has been created. You can now start managing your cafe billing.</p>
+            <div style="text-align:center;margin:28px 0">
+              <a href="${loginUrl}" style="background:#ea580c;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px">
+                Login to Your Account →
+              </a>
+            </div>
+            <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:16px;margin-top:20px">
+              <p style="color:#92400e;margin:0 0 6px;font-weight:bold">First time login:</p>
+              <ol style="color:#374151;margin:0;padding-left:20px;line-height:1.8">
+                <li>Click the login button above</li>
+                <li>Set your 4-digit PIN</li>
+                <li>Use this PIN every time you log in</li>
+              </ol>
+            </div>
+            <p style="color:#6b7280;font-size:13px;margin-top:24px">
+              Your login URL: <a href="${loginUrl}" style="color:#ea580c">${loginUrl}</a>
+            </p>
+          </div>
+          <div style="background:#f9fafb;padding:16px;text-align:center;border-top:1px solid #eee">
+            <p style="color:#9ca3af;font-size:12px;margin:0">Powered by CafeBill SaaS · vcubesolutions.in</p>
+          </div>
+        </div>
+      `,
+    });
+    console.log(`✅ Welcome email sent to ${email}`);
+  } catch (e) {
+    console.warn("⚠️  Welcome email failed:", e.message);
+  }
+}
+
 // ── Simple auth middleware ─────────────────────────────────────
 function requireAdmin(req, res, next) {
   const { username, password } = req.headers;
@@ -99,6 +160,9 @@ router.post("/activate", requireAdmin, (req, res) => {
   // Mark request as approved
   masterDb.prepare("UPDATE signup_requests SET status='approved' WHERE id=?").run(requestId);
 
+  // Send welcome email to owner
+  sendWelcomeEmail(request.owner_name, request.email, subdomain);
+
   res.json({
     success: true,
     tenant: masterDb.prepare("SELECT * FROM tenants WHERE id=?").get(result.lastInsertRowid),
@@ -129,6 +193,9 @@ router.post("/tenants/create", requireAdmin, (req, res) => {
   db.prepare("DELETE FROM cafe_info").run();
   db.prepare("INSERT INTO cafe_info (cafe_name, owner_name, mobile, email, city) VALUES (?,?,?,?,?)")
     .run(cafeName, ownerName, mobile, email || "", city || "");
+
+  // Send welcome email to owner
+  sendWelcomeEmail(ownerName, email, subdomain);
 
   res.json({ success: true, id: result.lastInsertRowid, subdomain });
 });
