@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: cafebill-saas
+    env: node
+    buildCommand: cd frontend && npm install --include=dev && npm run build && cd ../backend && npm install
+    startCommand: node backend/app.js
+    disk:
+      name: cafebill-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: NODE_VERSION
+        value: 20
+      - key: DB_PATH
+        value: /var/data
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SMS_PROVIDER
+        value: fast2sms
+      - key: FAST2SMS_KEY
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: EMAIL_PORT
+        value: 465
+      - key: EMAIL_SECURE
+        value: true
+      - key: BASE_DOMAIN
+        value: vcubesolutions.in

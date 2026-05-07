@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CafeBill Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f3f4f6; color: #1f2937; }
+    a { text-decoration: none; color: inherit; }
+    .hidden { display: none !important; }
+
+    /* Login */
+    #loginPage {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #fff7ed;
+    }
+    .login-box {
+      background: white; border-radius: 20px; padding: 40px; width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.1);
+    }
+    .login-box h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
+    .login-box p { font-size: 0.85rem; color: #6b7280; margin-bottom: 24px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 0.8rem; font-weight: 600; color: #4b5563; margin-bottom: 5px; }
+    .field input, .field select { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; font-size: 0.9rem; font-family: inherit; outline: none; }
+    .field input:focus { border-color: #ea580c; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; transition: all .2s; }
+    .btn-orange { background: #ea580c; color: white; }
+    .btn-orange:hover { background: #c2410c; }
+    .btn-green { background: #16a34a; color: white; }
+    .btn-green:hover { background: #15803d; }
+    .btn-red { background: #dc2626; color: white; }
+    .btn-red:hover { background: #b91c1c; }
+    .btn-gray { background: #e5e7eb; color: #374151; }
+    .btn-gray:hover { background: #d1d5db; }
+    .btn-full { width: 100%; justify-content: center; padding: 12px; }
+    .err { color: #dc2626; font-size: 0.8rem; margin-top: 10px; }
+
+    /* App shell */
+    #appPage { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 220px; background: #1f2937; color: white; flex-shrink: 0;
+      display: flex; flex-direction: column; padding: 24px 0;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .sidebar-logo { padding: 0 20px 24px; font-size: 1.2rem; font-weight: 800; color: #fb923c; }
+    .sidebar a {
+      display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+      font-size: 0.875rem; font-weight: 500; color: #d1d5db; cursor: pointer;
+      transition: all .2s; border-left: 3px solid transparent;
+    }
+    .sidebar a:hover, .sidebar a.active { background: #374151; color: white; border-left-color: #ea580c; }
+    .sidebar-section { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; padding: 16px 20px 6px; }
+    .main { flex: 1; padding: 28px; overflow-x: auto; }
+    .page-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
+    .page-sub { font-size: 0.85rem; color: #6b7280; margin-bottom: 24px; }
+
+    /* Stats cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .stat-card .label { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 1.8rem; font-weight: 800; margin-top: 4px; }
+    .stat-card .sub { font-size: 0.72rem; color: #9ca3af; margin-top: 2px; }
+
+    /* Table */
+    .card { background: white; border-radius: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .card-header h3 { font-size: 1rem; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { text-align: left; padding: 10px 16px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #6b7280; background: #f9fafb; }
+    td { padding: 12px 16px; border-top: 1px solid #f3f4f6; vertical-align: middle; }
+    tr:hover td { background: #fafafa; }
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 600; }
+    .badge-active  { background: #dcfce7; color: #16a34a; }
+    .badge-trial   { background: #fef3c7; color: #d97706; }
+    .badge-expired { background: #fee2e2; color: #dc2626; }
+    .badge-suspended { background: #f3f4f6; color: #6b7280; }
+    .badge-pending { background: #ede9fe; color: #7c3aed; }
+    .badge-basic    { background: #f3f4f6; color: #374151; }
+    .badge-pro      { background: #dbeafe; color: #1d4ed8; }
+    .badge-business { background: #fce7f3; color: #be185d; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .empty { text-align: center; padding: 40px; color: #9ca3af; }
+
+    /* Modal */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+    .overlay.open { display: flex; }
+    .modal { background: white; border-radius: 16px; padding: 28px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 16px; }
+    .modal-footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+    .refresh-btn { background: none; border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; color: #6b7280; }
+    .refresh-btn:hover { border-color: #ea580c; color: #ea580c; }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN ─────────────────────────────────────────────────── -->
+<div id="loginPage">
+  <div class="login-box">
+    <div style="font-size:2rem;margin-bottom:12px">☕</div>
+    <h1>CafeBill Admin</h1>
+    <p>Sign in to manage tenants and subscriptions</p>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="loginUser" value="admin" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Admin password" onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <div id="loginErr" class="err"></div>
+    <button class="btn btn-orange btn-full" style="margin-top:16px" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- ── MAIN APP ───────────────────────────────────────────────── -->
+<div id="appPage" class="hidden">
+  <aside class="sidebar">
+    <div class="sidebar-logo">☕ CafeBill</div>
+    <div class="sidebar-section">Overview</div>
+    <a onclick="showPage('dashboard')" id="nav-dashboard" class="active">📊 Dashboard</a>
+    <div class="sidebar-section">Tenants</div>
+    <a onclick="showPage('requests')" id="nav-requests">📬 New Requests</a>
+    <a onclick="showPage('tenants')" id="nav-tenants">🏪 All Cafes</a>
+    <a onclick="showPage('create')" id="nav-create">➕ Add Cafe</a>
+    <div class="sidebar-section" style="margin-top:auto">Account</div>
+    <a onclick="doLogout()">🚪 Logout</a>
+  </aside>
+
+  <main class="main">
+    <!-- Dashboard -->
+    <div id="page-dashboard">
+      <div class="page-title">📊 Dashboard</div>
+      <div class="page-sub" id="dashDate"></div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="label">Total Cafes</div><div class="value" id="s-total">—</div></div>
+        <div class="stat-card"><div class="label">Active</div><div class="value" id="s-active" style="color:#16a34a">—</div></div>
+        <div class="stat-card"><div class="label">On Trial</div><div class="value" id="s-trial" style="color:#d97706">—</div></div>
+        <div class="stat-card"><div class="label">Pending</div><div class="value" id="s-pending" style="color:#7c3aed">—</div></div>
+        <div class="stat-card"><div class="label">Est. MRR</div><div class="value" id="s-mrr" style="color:#ea580c">—</div><div class="sub">Monthly revenue</div></div>
+        <div class="stat-card"><div class="label">Basic</div><div class="value" id="s-basic">—</div></div>
+        <div class="stat-card"><div class="label">Pro</div><div class="value" id="s-pro">—</div></div>
+        <div class="stat-card"><div class="label">Business</div><div class="value" id="s-business">—</div></div>
+      </div>
+      <div style="font-size:0.85rem;color:#6b7280;margin-top:8px">
+        💡 Tip: Go to <b>New Requests</b> to approve signup requests from the landing page.
+      </div>
+    </div>
+
+    <!-- Signup Requests -->
+    <div id="page-requests" class="hidden">
+      <div class="page-title">📬 Signup Requests</div>
+      <div class="page-sub">Approve requests from the landing page to create tenant accounts.</div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Pending Requests</h3>
+          <button class="refresh-btn" onclick="loadRequests()">↻ Refresh</button>
+        </div>
+        <div id="requestsTable"><div class="empty">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- All Tenants -->
+    <div id="page-tenants" class="hidden">
+      <div class="page-title">🏪 All Cafes</div>
+      <div class="page-sub">Manage plan, status, and access for each registered cafe.</div>
+      <div class="card">
+        <div class="card-header">
+          <h3 id="tenantsCount">Tenants</h3>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="tenantSearch" placeholder="🔍 Search cafes..." oninput="filterTenants()" style="border:1px solid #e5e7eb;border-radius:8px;padding:6px 12px;font-size:0.82rem;outline:none;width:200px" />
+            <button class="refresh-btn" onclick="loadTenants()">↻ Refresh</button>
+          </div>
+        </div>
+        <div id="tenantsTable"><div class="empty">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- Create Tenant -->
+    <div id="page-create" class="hidden">
+      <div class="page-title">➕ Add Cafe Directly</div>
+      <div class="page-sub">Create a tenant account without going through the signup flow.</div>
+      <div class="card" style="max-width:560px">
+        <div style="padding:24px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="field"><label>Cafe Name *</label><input type="text" id="cr-cafeName" placeholder="e.g. Brew House" /></div>
+            <div class="field"><label>Owner Name *</label><input type="text" id="cr-ownerName" placeholder="e.g. Ravi Kumar" /></div>
+            <div class="field"><label>Mobile *</label><input type="text" id="cr-mobile" placeholder="10-digit" maxlength="10" /></div>
+            <div class="field"><label>Email</label><input type="email" id="cr-email" placeholder="owner@cafe.com" /></div>
+            <div class="field"><label>City</label><input type="text" id="cr-city" placeholder="e.g. Hyderabad" /></div>
+            <div class="field"><label>Subdomain *</label><input type="text" id="cr-subdomain" placeholder="e.g. brewhouseHyd" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')" /></div>
+          </div>
+          <div class="field"><label>Plan</label>
+            <select id="cr-plan">
+              <option value="basic">Basic — ₹299/mo</option>
+              <option value="pro" selected>Pro — ₹699/mo</option>
+              <option value="business">Business — ₹1499/mo</option>
+            </select>
+          </div>
+          <div id="cr-err" class="err"></div>
+          <button class="btn btn-orange" style="margin-top:8px" onclick="createTenant()">➕ Create Cafe Account</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ── ACTIVATE REQUEST MODAL ─────────────────────────────────── -->
+<div class="overlay" id="activateModal">
+  <div class="modal">
+    <h3>✅ Activate Signup Request</h3>
+    <input type="hidden" id="act-requestId" />
+    <div class="field"><label>Cafe Name</label><input type="text" id="act-cafeName" disabled /></div>
+    <div class="field"><label>Owner</label><input type="text" id="act-ownerName" disabled /></div>
+    <div class="field"><label>Mobile</label><input type="text" id="act-mobile" disabled /></div>
+    <div class="field">
+      <label>Subdomain * (will be: <b id="act-preview">—</b>.vcubesolutions.in)</label>
+      <input type="text" id="act-subdomain" placeholder="e.g. brewhousehyd" oninput="updatePreview()" />
+    </div>
+    <div class="field"><label>Plan</label>
+      <select id="act-plan">
+        <option value="basic">Basic — ₹299/mo</option>
+        <option value="pro" selected>Pro — ₹699/mo</option>
+        <option value="business">Business — ₹1499/mo</option>
+      </select>
+    </div>
+    <div id="act-err" class="err"></div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal('activateModal')">Cancel</button>
+      <button class="btn btn-green" onclick="activateRequest()">✅ Activate Tenant</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESET PIN MODAL ────────────────────────────────────────── -->
+<div class="overlay" id="resetPinModal">
+  <div class="modal" style="max-width:380px">
+    <h3>🔑 Reset Owner PIN</h3>
+    <input type="hidden" id="rp-id" />
+    <p style="font-size:0.85rem;color:#6b7280;margin-bottom:16px">
+      Resetting PIN for: <strong id="rp-cafe"></strong><br/>
+      The owner will be asked to set a new PIN on next login.
+    </p>
+    <div class="field">
+      <label>New 4-Digit PIN</label>
+      <input type="password" id="rp-pin" maxlength="4" inputmode="numeric" placeholder="e.g. 1234"
+        onkeydown="if(event.key==='Enter') doResetPin()" />
+    </div>
+    <div id="rp-err" class="err"></div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal('resetPinModal')">Cancel</button>
+      <button class="btn btn-orange" onclick="doResetPin()">🔐 Reset PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── EDIT TENANT MODAL ──────────────────────────────────────── -->
+<div class="overlay" id="editModal">
+  <div class="modal">
+    <h3>✏️ Update Tenant</h3>
+    <input type="hidden" id="edit-id" />
+    <div class="field"><label>Cafe</label><input type="text" id="edit-cafe" disabled /></div>
+    <div class="field"><label>Plan</label>
+      <select id="edit-plan">
+        <option value="basic">Basic — ₹299/mo</option>
+        <option value="pro">Pro — ₹699/mo</option>
+        <option value="business">Business — ₹1499/mo</option>
+      </select>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="edit-status">
+        <option value="trial">Trial</option>
+        <option value="active">Active</option>
+        <option value="expired">Expired</option>
+        <option value="suspended">Suspended</option>
+      </select>
+    </div>
+    <div id="edit-err" class="err"></div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-orange" onclick="saveTenant()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';  // same origin
+let AUTH = { username: '', password: '' };
+let allTenants = [];
+
+// ── Login ───────────────────────────────────────────────────
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  try {
+    const r = await fetch(`${API}/api/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      AUTH = { username: u, password: p };
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('appPage').classList.remove('hidden');
+      document.getElementById('dashDate').textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+      loadStats();
+    } else {
+      document.getElementById('loginErr').textContent = d.error || 'Login failed';
+    }
+  } catch { document.getElementById('loginErr').textContent = 'Cannot connect to server.'; }
+}
+
+function doLogout() {
+  AUTH = {};
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('appPage').classList.add('hidden');
+}
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', username: AUTH.username, password: AUTH.password };
+}
+
+// ── Navigation ──────────────────────────────────────────────
+function showPage(name) {
+  ['dashboard','requests','tenants','create'].forEach(p => {
+    document.getElementById(`page-${p}`).classList.add('hidden');
+    document.getElementById(`nav-${p}`).classList.remove('active');
+  });
+  document.getElementById(`page-${name}`).classList.remove('hidden');
+  document.getElementById(`nav-${name}`).classList.add('active');
+  if (name === 'requests') loadRequests();
+  if (name === 'tenants') loadTenants();
+}
+
+// ── Stats ───────────────────────────────────────────────────
+async function loadStats() {
+  const r = await fetch(`${API}/api/admin/stats`, { headers: authHeaders() });
+  const d = await r.json();
+  document.getElementById('s-total').textContent = d.total;
+  document.getElementById('s-active').textContent = d.active;
+  document.getElementById('s-trial').textContent = d.trial;
+  document.getElementById('s-pending').textContent = d.pending;
+  document.getElementById('s-mrr').textContent = '₹' + (d.mrr || 0).toLocaleString('en-IN');
+  document.getElementById('s-basic').textContent = d.basic;
+  document.getElementById('s-pro').textContent = d.pro;
+  document.getElementById('s-business').textContent = d.business;
+}
+
+// ── Requests ────────────────────────────────────────────────
+async function loadRequests() {
+  const r = await fetch(`${API}/api/admin/requests`, { headers: authHeaders() });
+  const data = await r.json();
+  const el = document.getElementById('requestsTable');
+  if (!data.length) { el.innerHTML = '<div class="empty">No signup requests yet.</div>'; return; }
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>Cafe Name</th><th>Owner</th><th>Mobile</th><th>City</th><th>Plan</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${data.map(r => `
+          <tr>
+            <td><b>${r.cafe_name}</b></td>
+            <td>${r.owner_name}</td>
+            <td>${r.mobile}</td>
+            <td>${r.city || '—'}</td>
+            <td><span class="badge badge-${r.plan}">${r.plan}</span></td>
+            <td><span class="badge badge-${r.status}">${r.status}</span></td>
+            <td>${new Date(r.created_at).toLocaleDateString('en-IN')}</td>
+            <td class="actions">
+              ${r.status === 'pending' ? `<button class="btn btn-green" onclick="openActivate(${r.id},'${esc(r.cafe_name)}','${esc(r.owner_name)}','${r.mobile}','${r.plan}')">✅ Activate</button>` : ''}
+              <button class="btn btn-red" onclick="deleteRequest(${r.id})">🗑️</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function esc(s) { return String(s).replace(/'/g, "\\'"); }
+
+async function deleteRequest(id) {
+  if (!confirm('Delete this request?')) return;
+  await fetch(`${API}/api/admin/requests/${id}`, { method: 'DELETE', headers: authHeaders() });
+  loadRequests(); loadStats();
+}
+
+// ── Activate modal ──────────────────────────────────────────
+function openActivate(id, cafeName, ownerName, mobile, plan) {
+  document.getElementById('act-requestId').value = id;
+  document.getElementById('act-cafeName').value = cafeName;
+  document.getElementById('act-ownerName').value = ownerName;
+  document.getElementById('act-mobile').value = mobile;
+  document.getElementById('act-plan').value = plan || 'pro';
+  // Auto-suggest subdomain
+  const sub = cafeName.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,18);
+  document.getElementById('act-subdomain').value = sub;
+  document.getElementById('act-preview').textContent = sub;
+  document.getElementById('act-err').textContent = '';
+  document.getElementById('activateModal').classList.add('open');
+}
+
+function updatePreview() {
+  const v = document.getElementById('act-subdomain').value;
+  document.getElementById('act-preview').textContent = v || '—';
+}
+
+async function activateRequest() {
+  const requestId = document.getElementById('act-requestId').value;
+  const subdomain = document.getElementById('act-subdomain').value.trim();
+  const plan = document.getElementById('act-plan').value;
+  const errEl = document.getElementById('act-err');
+  errEl.textContent = '';
+
+  if (!subdomain) { errEl.textContent = 'Subdomain is required.'; return; }
+  if (!/^[a-z0-9][a-z0-9-]{1,20}[a-z0-9]$/.test(subdomain)) {
+    errEl.textContent = 'Subdomain: 3-22 lowercase letters, numbers, hyphens only.'; return;
+  }
+
+  const r = await fetch(`${API}/api/admin/activate`, {
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify({ requestId, subdomain, plan }),
+  });
+  const d = await r.json();
+  if (d.success) {
+    closeModal('activateModal');
+    alert(`✅ Tenant activated!\n\nURL: ${subdomain}.vcubesolutions.in\nPlan: ${plan}\n14-day trial started.`);
+    loadRequests(); loadStats();
+  } else {
+    errEl.textContent = '❌ ' + (d.error || 'Activation failed');
+  }
+}
+
+// ── Tenants ─────────────────────────────────────────────────
+async function loadTenants() {
+  const r = await fetch(`${API}/api/admin/tenants`, { headers: authHeaders() });
+  allTenants = await r.json();
+  renderTenants(allTenants);
+}
+
+function renderTenants(list) {
+  document.getElementById('tenantsCount').textContent = `${list.length} Cafes`;
+  const el = document.getElementById('tenantsTable');
+  if (!list.length) { el.innerHTML = '<div class="empty">No tenants yet.</div>'; return; }
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>Cafe</th><th>Subdomain</th><th>Mobile</th><th>Plan</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${list.map(t => `
+          <tr>
+            <td><b>${t.cafe_name}</b><br/><span style="font-size:0.75rem;color:#6b7280">${t.owner_name}</span></td>
+            <td><a href="http://${t.subdomain}.vcubesolutions.in" target="_blank" style="color:#ea580c;font-weight:600">${t.subdomain}.vcubesolutions.in</a></td>
+            <td>${t.mobile}</td>
+            <td><span class="badge badge-${t.plan}">${t.plan}</span></td>
+            <td><span class="badge badge-${t.status}">${t.status}</span></td>
+            <td>${new Date(t.created_at).toLocaleDateString('en-IN')}</td>
+            <td class="actions">
+              <button class="btn btn-gray" onclick="openEdit(${t.id},'${esc(t.cafe_name)}','${t.plan}','${t.status}')">✏️ Edit</button>
+              <button class="btn btn-gray" style="background:#fff3e0;color:#ea580c" onclick="openResetPin(${t.id},'${esc(t.cafe_name)}')">🔑 Reset PIN</button>
+              <button class="btn btn-red" onclick="deleteTenant(${t.id},'${esc(t.cafe_name)}')">🗑️</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function filterTenants() {
+  const q = document.getElementById('tenantSearch').value.toLowerCase();
+  renderTenants(allTenants.filter(t =>
+    t.cafe_name.toLowerCase().includes(q) ||
+    t.subdomain.toLowerCase().includes(q) ||
+    t.mobile.includes(q)
+  ));
+}
+
+async function deleteTenant(id, name) {
+  if (!confirm(`⚠️ Delete "${name}"? This will permanently remove all their data.`)) return;
+  await fetch(`${API}/api/admin/tenants/${id}`, { method: 'DELETE', headers: authHeaders() });
+  loadTenants(); loadStats();
+}
+
+// ── Edit tenant modal ───────────────────────────────────────
+function openEdit(id, cafe, plan, status) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-cafe').value = cafe;
+  document.getElementById('edit-plan').value = plan;
+  document.getElementById('edit-status').value = status;
+  document.getElementById('edit-err').textContent = '';
+  document.getElementById('editModal').classList.add('open');
+}
+
+async function saveTenant() {
+  const id = document.getElementById('edit-id').value;
+  const plan = document.getElementById('edit-plan').value;
+  const status = document.getElementById('edit-status').value;
+  const r = await fetch(`${API}/api/admin/tenants/${id}`, {
+    method: 'PUT', headers: authHeaders(),
+    body: JSON.stringify({ plan, status }),
+  });
+  const d = await r.json();
+  if (d.success) { closeModal('editModal'); loadTenants(); loadStats(); }
+  else document.getElementById('edit-err').textContent = d.error;
+}
+
+// ── Create tenant ────────────────────────────────────────────
+async function createTenant() {
+  const body = {
+    cafeName:  document.getElementById('cr-cafeName').value.trim(),
+    ownerName: document.getElementById('cr-ownerName').value.trim(),
+    mobile:    document.getElementById('cr-mobile').value.trim(),
+    email:     document.getElementById('cr-email').value.trim(),
+    city:      document.getElementById('cr-city').value.trim(),
+    subdomain: document.getElementById('cr-subdomain').value.trim(),
+    plan:      document.getElementById('cr-plan').value,
+  };
+  const errEl = document.getElementById('cr-err');
+  errEl.textContent = '';
+
+  if (!body.cafeName || !body.ownerName || !body.mobile || !body.subdomain) {
+    errEl.textContent = 'Please fill all required fields.'; return;
+  }
+
+  const r = await fetch(`${API}/api/admin/tenants/create`, {
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(body),
+  });
+  const d = await r.json();
+  if (d.success) {
+    alert(`✅ Tenant created!\n\n${body.subdomain}.vcubesolutions.in`);
+    ['cr-cafeName','cr-ownerName','cr-mobile','cr-email','cr-city','cr-subdomain'].forEach(id => document.getElementById(id).value = '');
+    loadStats();
+  } else {
+    errEl.textContent = '❌ ' + (d.error || 'Failed');
+  }
+}
+
+// ── Reset owner PIN ──────────────────────────────────────────
+function openResetPin(id, cafe) {
+  document.getElementById('rp-id').value = id;
+  document.getElementById('rp-cafe').textContent = cafe;
+  document.getElementById('rp-pin').value = '';
+  document.getElementById('rp-err').textContent = '';
+  document.getElementById('resetPinModal').classList.add('open');
+  setTimeout(() => document.getElementById('rp-pin').focus(), 100);
+}
+
+async function doResetPin() {
+  const id  = document.getElementById('rp-id').value;
+  const pin = document.getElementById('rp-pin').value.replace(/\D/g,'');
+  const errEl = document.getElementById('rp-err');
+  errEl.textContent = '';
+  if (pin.length !== 4) { errEl.textContent = 'PIN must be exactly 4 digits.'; return; }
+  const r = await fetch(`${API}/api/admin/tenants/${id}/reset-pin`, {
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify({ pin }),
+  });
+  const d = await r.json();
+  if (d.success) {
+    closeModal('resetPinModal');
+    alert('✅ Owner PIN has been reset. The owner can now log in with the new PIN.');
+  } else {
+    errEl.textContent = '❌ ' + (d.error || 'Failed to reset PIN');
+  }
+}
+
+// ── Utils ────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+</script>
+</body>
+</html>

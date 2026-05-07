@@ -1,0 +1,13 @@
+{
+  "name": "cafebill-saas",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm install --include=dev && npm run build && cd ../backend && npm install",
+    "start": "node backend/app.js"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}

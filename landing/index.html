@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CafeBill — Smart Billing Software for Restaurants & Cafes</title>
+  <meta name="description" content="Modern billing software built for Indian restaurants and cafes. Menu management, staff login, GST-ready bills, and real-time orders. Try free for 14 days." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #ea580c;
+      --orange-light: #fff7ed;
+      --orange-dark: #c2410c;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-800: #1f2937;
+      --green: #16a34a;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; color: var(--gray-800); background: #fff; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ── NAV ─────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+      border-bottom: 1px solid #f1f1f1;
+      padding: 0 5%;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo { font-size: 1.4rem; font-weight: 800; color: var(--orange); display: flex; align-items: center; gap: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--gray-600); transition: color .2s; }
+    .nav-links a:hover { color: var(--orange); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 22px; border-radius: 50px; font-weight: 600; font-size: 0.875rem; transition: all .2s; cursor: pointer; border: none; }
+    .btn-primary { background: var(--orange); color: white; }
+    .btn-primary:hover { background: var(--orange-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(234,88,12,.35); }
+    .btn-outline { background: transparent; color: var(--orange); border: 2px solid var(--orange); }
+    .btn-outline:hover { background: var(--orange); color: white; }
+    .btn-lg { padding: 14px 32px; font-size: 1rem; }
+    .btn-white { background: white; color: var(--orange); }
+    .btn-white:hover { background: var(--orange-light); }
+
+    /* ── HERO ──────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 40%, #fdba74 100%);
+      padding: 80px 5% 100px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 60% 50%, rgba(234,88,12,.08) 0%, transparent 70%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: white; border: 1px solid #fed7aa;
+      color: var(--orange); font-size: 0.8rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 50px; margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 900; line-height: 1.15;
+      color: var(--gray-800); margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--orange); }
+    .hero p {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--gray-600); max-width: 580px;
+      margin: 0 auto 36px; line-height: 1.7;
+    }
+    .hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .hero-note { font-size: 0.78rem; color: var(--gray-400); margin-top: 16px; }
+
+    /* App preview mockup */
+    .hero-preview {
+      margin-top: 60px; position: relative;
+      max-width: 900px; margin-left: auto; margin-right: auto;
+    }
+    .mockup-browser {
+      background: white; border-radius: 16px;
+      box-shadow: 0 25px 60px rgba(0,0,0,.15);
+      overflow: hidden; border: 1px solid #e5e7eb;
+    }
+    .mockup-bar {
+      background: #f3f4f6; padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mockup-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .mockup-url {
+      flex: 1; background: white; border-radius: 6px;
+      padding: 4px 12px; font-size: 0.75rem; color: var(--gray-400);
+      margin: 0 12px; text-align: center;
+    }
+    .mockup-body {
+      background: linear-gradient(135deg, #fff7ed, #fef3c7);
+      padding: 20px; min-height: 280px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    }
+    .mockup-card {
+      background: white; border-radius: 12px; padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .mockup-card-title { font-size: 0.65rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; margin-bottom: 8px; }
+    .mockup-stat { font-size: 1.5rem; font-weight: 800; color: var(--orange); }
+    .mockup-stat-label { font-size: 0.7rem; color: var(--gray-400); }
+    .mockup-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.72rem; }
+    .mockup-badge { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 50px; font-size: 0.65rem; font-weight: 600; }
+
+    /* ── LOGOS / SOCIAL PROOF ─────────────────────────── */
+    .social-proof {
+      text-align: center; padding: 40px 5%;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .social-proof p { font-size: 0.8rem; color: var(--gray-400); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }
+    .logos { display: flex; gap: 36px; justify-content: center; align-items: center; flex-wrap: wrap; }
+    .logo-pill { background: var(--gray-100); padding: 8px 20px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; color: var(--gray-600); }
+
+    /* ── FEATURES ─────────────────────────────────────── */
+    section { padding: 80px 5%; }
+    .section-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--orange); margin-bottom: 10px; }
+    .section-title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.2; color: var(--gray-800); }
+    .section-sub { font-size: 1.05rem; color: var(--gray-600); margin-top: 12px; max-width: 520px; line-height: 1.6; }
+
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-top: 52px; }
+    .feature-card {
+      background: white; border: 1.5px solid var(--gray-100);
+      border-radius: 16px; padding: 28px;
+      transition: all .25s;
+    }
+    .feature-card:hover { border-color: #fed7aa; box-shadow: 0 8px 24px rgba(234,88,12,.08); transform: translateY(-3px); }
+    .feature-icon { font-size: 2rem; margin-bottom: 14px; }
+    .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 0.875rem; color: var(--gray-600); line-height: 1.6; }
+
+    /* ── HOW IT WORKS ─────────────────────────────────── */
+    .how-bg { background: var(--gray-50); }
+    .steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 32px; margin-top: 52px; }
+    .step { text-align: center; }
+    .step-num {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--orange); color: white;
+      font-size: 1.2rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 0.875rem; color: var(--gray-600); line-height: 1.6; }
+
+    /* ── PRICING ──────────────────────────────────────── */
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; margin-top: 52px; max-width: 1000px; margin-left: auto; margin-right: auto; }
+    .plan-card {
+      border: 2px solid var(--gray-100); border-radius: 20px; padding: 32px;
+      position: relative; transition: all .25s; background: white;
+    }
+    .plan-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.1); }
+    .plan-card.popular {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 4px rgba(234,88,12,.08);
+    }
+    .popular-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--orange); color: white;
+      padding: 4px 16px; border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+      white-space: nowrap;
+    }
+    .plan-name { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-400); }
+    .plan-price { font-size: 2.8rem; font-weight: 900; color: var(--gray-800); margin: 8px 0 4px; }
+    .plan-price span { font-size: 1rem; font-weight: 500; color: var(--gray-400); }
+    .plan-desc { font-size: 0.875rem; color: var(--gray-600); margin-bottom: 24px; line-height: 1.5; }
+    .plan-features { list-style: none; space-y: 10px; margin-bottom: 28px; }
+    .plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: var(--gray-600); padding: 5px 0; }
+    .plan-features li .check { color: var(--green); font-weight: 700; flex-shrink: 0; }
+    .plan-features li .x { color: #d1d5db; font-weight: 700; flex-shrink: 0; }
+
+    /* ── TESTIMONIALS ─────────────────────────────────── */
+    .testimonials-bg { background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%); }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; margin-top: 48px; }
+    .testimonial-card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 2px 16px rgba(0,0,0,.06); }
+    .stars { color: #f59e0b; font-size: 1rem; margin-bottom: 14px; }
+    .testimonial-text { font-size: 0.9rem; color: var(--gray-600); line-height: 1.7; margin-bottom: 18px; font-style: italic; }
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+    .author-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--orange); color: white; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .author-name { font-weight: 700; font-size: 0.875rem; }
+    .author-cafe { font-size: 0.78rem; color: var(--gray-400); }
+
+    /* ── CTA BANNER ───────────────────────────────────── */
+    .cta-banner {
+      background: linear-gradient(135deg, var(--orange) 0%, #f97316 50%, #fb923c 100%);
+      color: white; text-align: center; padding: 80px 5%;
+    }
+    .cta-banner h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 14px; }
+    .cta-banner p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 36px; }
+
+    /* ── SIGNUP MODAL ─────────────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.55); z-index: 1000;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white; border-radius: 24px; padding: 36px;
+      width: 100%; max-width: 480px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 32px 64px rgba(0,0,0,.2);
+    }
+    .modal h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
+    .modal p.sub { font-size: 0.875rem; color: var(--gray-600); margin-bottom: 24px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
+    .form-group input, .form-group select {
+      width: 100%; border: 1.5px solid #e5e7eb; border-radius: 12px;
+      padding: 11px 14px; font-size: 0.9rem; font-family: 'Inter', sans-serif;
+      outline: none; transition: border-color .2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--orange); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .modal-submit { width: 100%; padding: 14px; background: var(--orange); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .2s; margin-top: 8px; }
+    .modal-submit:hover { background: var(--orange-dark); }
+    .modal-close { float: right; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--gray-400); margin-top: -8px; }
+    .success-box { display: none; text-align: center; padding: 20px; }
+    .success-box .emoji { font-size: 3rem; margin-bottom: 14px; }
+    .success-box h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+    .success-box p { color: var(--gray-600); font-size: 0.9rem; line-height: 1.6; }
+
+    /* ── FOOTER ───────────────────────────────────────── */
+    footer {
+      background: var(--gray-800); color: white;
+      padding: 48px 5% 28px;
+    }
+    .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+    .footer-brand p { font-size: 0.875rem; color: #9ca3af; line-height: 1.7; margin-top: 10px; max-width: 260px; }
+    .footer-col h4 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af; margin-bottom: 14px; }
+    .footer-col a { display: block; font-size: 0.875rem; color: #d1d5db; margin-bottom: 10px; transition: color .2s; }
+    .footer-col a:hover { color: var(--orange); }
+    .footer-bottom { border-top: 1px solid #374151; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; font-size: 0.8rem; color: #6b7280; }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .mockup-body { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .footer-top { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ─────────────────────────────────────────── -->
+<nav>
+  <div class="nav-logo">☕ CafeBill</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how-it-works">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="/admin" style="color:#6b7280">Admin</a>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="#pricing" class="btn btn-outline" onclick="openModal('basic')">View Plans</a>
+    <a href="#" class="btn btn-primary" onclick="openModal(); return false;">Get Started Free</a>
+  </div>
+</nav>
+
+<!-- ── HERO ───────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-badge">🚀 Trusted by 200+ restaurants across India</div>
+  <h1>Smart Billing Software for<br /><span>Restaurants & Cafes</span></h1>
+  <p>Manage orders, print GST bills, track sales, and run your entire cafe from one simple app — accessible from any device.</p>
+  <div class="hero-cta">
+    <a href="#" class="btn btn-primary btn-lg" onclick="openModal(); return false;">Start 14-Day Free Trial</a>
+    <a href="#pricing" class="btn btn-outline btn-lg">See Pricing</a>
+  </div>
+  <p class="hero-note">✅ No credit card required &nbsp;·&nbsp; Setup in 5 minutes &nbsp;·&nbsp; Cancel anytime</p>
+
+  <!-- App preview mockup -->
+  <div class="hero-preview">
+    <div class="mockup-browser">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#ff5f57"></div>
+        <div class="mockup-dot" style="background:#ffbd2e"></div>
+        <div class="mockup-dot" style="background:#28c840"></div>
+        <div class="mockup-url">☕ mycafe.cafebill.in</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-card">
+          <div class="mockup-card-title">Today's Revenue</div>
+          <div class="mockup-stat">₹12,480</div>
+          <div class="mockup-stat-label">+18% vs yesterday</div>
+          <div style="margin-top:12px">
+            <div class="mockup-item"><span>Cappuccino x4</span><span>₹560</span></div>
+            <div class="mockup-item"><span>Pasta x2</span><span>₹380</span></div>
+            <div class="mockup-item"><span>Burger x6</span><span>₹900</span></div>
+          </div>
+        </div>
+        <div class="mockup-card">
+          <div class="mockup-card-title">Active Orders</div>
+          <div class="mockup-stat">7</div>
+          <div class="mockup-stat-label">3 tables occupied</div>
+          <div style="margin-top:12px">
+            <div class="mockup-item"><span>Table 2 — Rahul</span><span class="mockup-badge">Active</span></div>
+            <div class="mockup-item"><span>Table 5 — Priya</span><span class="mockup-badge">Active</span></div>
+            <div class="mockup-item"><span>Table 8 — Delivery</span><span class="mockup-badge">Active</span></div>
+          </div>
+        </div>
+        <div class="mockup-card">
+          <div class="mockup-card-title">Top Items Today</div>
+          <div style="margin-top:4px">
+            <div class="mockup-item"><span>☕ Cappuccino</span><span style="font-weight:700;color:#ea580c">24 sold</span></div>
+            <div class="mockup-item"><span>🍕 Margherita Pizza</span><span style="font-weight:700;color:#ea580c">18 sold</span></div>
+            <div class="mockup-item"><span>🥗 Caesar Salad</span><span style="font-weight:700;color:#ea580c">15 sold</span></div>
+            <div class="mockup-item"><span>🍜 Veg Noodles</span><span style="font-weight:700;color:#ea580c">12 sold</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SOCIAL PROOF ────────────────────────────────────────── -->
+<div class="social-proof">
+  <p>Loved by restaurants across India</p>
+  <div class="logos">
+    <div class="logo-pill">☕ Brew House, Hyderabad</div>
+    <div class="logo-pill">🍕 Pizza Point, Bangalore</div>
+    <div class="logo-pill">🍜 Noodle Bar, Mumbai</div>
+    <div class="logo-pill">🥗 Green Bowl, Chennai</div>
+    <div class="logo-pill">🍔 Burger Shack, Pune</div>
+  </div>
+</div>
+
+<!-- ── FEATURES ────────────────────────────────────────────── -->
+<section id="features">
+  <div class="section-label">Everything you need</div>
+  <h2 class="section-title">Built for the way restaurants work</h2>
+  <p class="section-sub">Everything from taking orders to printing bills, managing staff, and tracking sales — all in one app.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🛒</div>
+      <h3>Fast Order Taking</h3>
+      <p>Visual menu with item images. Add to cart with a tap, group by category, and place orders in seconds.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧾</div>
+      <h3>GST-Ready Bills</h3>
+      <p>Auto-calculate GST (5%, 12%, 18%), service charge, and print professional receipts with your branding.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <h3>Staff & Cashier Login</h3>
+      <p>Separate login for each staff member with 4-digit PIN. Role-based access — cashiers only see orders.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🍽️</div>
+      <h3>Menu Management</h3>
+      <p>Add items with photos, prices, and categories. Search and filter instantly. Update prices anytime.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Sales Reports</h3>
+      <p>Daily revenue summary, top-selling items, bill history with search and date filters.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>Works on Any Device</h3>
+      <p>Tablet, laptop, phone — your team can take orders from the floor while the cashier handles billing.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚙️</div>
+      <h3>Easy Setup</h3>
+      <p>15-step guided setup gets you running in under 5 minutes. No IT support needed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>Secure & Reliable</h3>
+      <p>OTP-based owner login, PIN-based staff access, and daily backups keep your data safe.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💳</div>
+      <h3>Multiple Payment Modes</h3>
+      <p>Track cash, UPI, and card payments. Record payment mode with every order.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ────────────────────────────────────────── -->
+<section id="how-it-works" class="how-bg">
+  <div style="max-width:900px; margin:auto; text-align:center">
+    <div class="section-label">Simple process</div>
+    <h2 class="section-title">Up and running in 4 steps</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Sign Up</h3>
+        <p>Enter your restaurant name, choose a plan, and verify your phone number with OTP.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Set Up Your Menu</h3>
+        <p>Add your menu items with prices, categories, and photos in minutes.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Add Your Staff</h3>
+        <p>Create accounts for your cashiers and waiters with individual PINs and roles.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Start Taking Orders</h3>
+        <p>Your app is live at <strong>yourname.cafebill.in</strong>. Start billing!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ─────────────────────────────────────────────── -->
+<section id="pricing">
+  <div style="text-align:center">
+    <div class="section-label">Transparent pricing</div>
+    <h2 class="section-title">Simple plans for every cafe</h2>
+    <p class="section-sub" style="margin:12px auto 0">No setup fees. No hidden charges. Cancel anytime. All plans include 14-day free trial.</p>
+  </div>
+  <div class="pricing-grid">
+
+    <!-- BASIC -->
+    <div class="plan-card">
+      <div class="plan-name">Basic</div>
+      <div class="plan-price">₹299<span>/month</span></div>
+      <p class="plan-desc">Perfect for small cafes and food stalls just getting started with digital billing.</p>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> 1 branch / location</li>
+        <li><span class="check">✓</span> 2 staff accounts</li>
+        <li><span class="check">✓</span> Up to 30 menu items</li>
+        <li><span class="check">✓</span> Order management</li>
+        <li><span class="check">✓</span> GST bill printing</li>
+        <li><span class="check">✓</span> Basic sales history</li>
+        <li><span class="x">✗</span> Reports & Analytics</li>
+        <li><span class="x">✗</span> White-label branding</li>
+        <li><span class="x">✗</span> Priority support</li>
+      </ul>
+      <a href="#" class="btn btn-outline" style="width:100%;justify-content:center;border-radius:12px;padding:13px" onclick="openModal('basic'); return false;">
+        Start Free Trial →
+      </a>
+    </div>
+
+    <!-- PRO (popular) -->
+    <div class="plan-card popular">
+      <div class="popular-badge">⭐ Most Popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">₹699<span>/month</span></div>
+      <p class="plan-desc">For growing restaurants that need more power, staff, and sales insights.</p>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Up to 3 branches</li>
+        <li><span class="check">✓</span> 10 staff accounts</li>
+        <li><span class="check">✓</span> Unlimited menu items</li>
+        <li><span class="check">✓</span> Order management</li>
+        <li><span class="check">✓</span> GST bill printing + PDF</li>
+        <li><span class="check">✓</span> Reports & Analytics</li>
+        <li><span class="check">✓</span> Category management</li>
+        <li><span class="check">✓</span> Priority email support</li>
+        <li><span class="x">✗</span> White-label branding</li>
+      </ul>
+      <a href="#" class="btn btn-primary" style="width:100%;justify-content:center;border-radius:12px;padding:13px" onclick="openModal('pro'); return false;">
+        Start Free Trial →
+      </a>
+    </div>
+
+    <!-- BUSINESS -->
+    <div class="plan-card">
+      <div class="plan-name">Business</div>
+      <div class="plan-price">₹1499<span>/month</span></div>
+      <p class="plan-desc">For restaurant chains, cloud kitchens, and franchises with advanced needs.</p>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Unlimited branches</li>
+        <li><span class="check">✓</span> Unlimited staff accounts</li>
+        <li><span class="check">✓</span> Unlimited menu items</li>
+        <li><span class="check">✓</span> Order management</li>
+        <li><span class="check">✓</span> GST bill printing + PDF</li>
+        <li><span class="check">✓</span> Advanced Reports</li>
+        <li><span class="check">✓</span> White-label branding</li>
+        <li><span class="check">✓</span> Custom subdomain</li>
+        <li><span class="check">✓</span> Dedicated support</li>
+      </ul>
+      <a href="#" class="btn btn-outline" style="width:100%;justify-content:center;border-radius:12px;padding:13px" onclick="openModal('business'); return false;">
+        Contact Sales →
+      </a>
+    </div>
+
+  </div>
+  <p style="text-align:center;color:var(--gray-400);font-size:0.8rem;margin-top:28px">
+    🎁 All plans include a <strong>14-day free trial</strong>. No credit card required to start.
+  </p>
+</section>
+
+<!-- ── TESTIMONIALS ───────────────────────────────────────── -->
+<section class="testimonials-bg">
+  <div style="text-align:center;margin-bottom:0">
+    <div class="section-label">What customers say</div>
+    <h2 class="section-title">Loved by restaurant owners</h2>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">"Setting up was incredibly easy. Within 5 minutes our cafe was live and we started taking orders. The staff PIN login is a great feature — no more sharing passwords."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">R</div>
+        <div>
+          <div class="author-name">Ravi Sharma</div>
+          <div class="author-cafe">Brew House Cafe, Hyderabad</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">"The GST bill printing alone saved us hours every week. Now customers get a proper receipt and our accounts are always in order. Worth every rupee."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">P</div>
+        <div>
+          <div class="author-name">Priya Nair</div>
+          <div class="author-cafe">Green Bowl Kitchen, Bangalore</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">"We manage 3 branches with the Pro plan. Each branch has its own staff and menu. The central dashboard gives me a quick view of all locations. Game changer."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">A</div>
+        <div>
+          <div class="author-name">Arjun Reddy</div>
+          <div class="author-cafe">Spice Route Restaurants, Mumbai</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA BANNER ─────────────────────────────────────────── -->
+<section class="cta-banner">
+  <h2>Ready to modernize your cafe billing?</h2>
+  <p>Join 200+ restaurants already using CafeBill. Start your free trial today — no card needed.</p>
+  <a href="#" class="btn btn-white btn-lg" onclick="openModal(); return false;">
+    🚀 Start Free Trial — It's Free for 14 Days
+  </a>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="nav-logo" style="color:#fb923c">☕ CafeBill</div>
+      <p>Smart billing software for restaurants, cafes, and food businesses across India. GST-ready, easy to use, and built for real kitchens.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#how-it-works">How it works</a>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <a href="mailto:support@cafebill.in">Email Support</a>
+      <a href="#">WhatsApp</a>
+      <a href="#">FAQs</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Refund Policy</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 CafeBill. All rights reserved.</span>
+    <span>Made with ☕ for Indian restaurants</span>
+  </div>
+</footer>
+
+<!-- ── SIGNUP MODAL ────────────────────────────────────────── -->
+<div class="modal-overlay" id="signupModal">
+  <div class="modal">
+    <div id="signupForm">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+        <div>
+          <h2>☕ Start your free trial</h2>
+          <p class="sub">Set up your cafe in 5 minutes. No credit card needed.</p>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Restaurant / Cafe Name *</label>
+          <input type="text" id="cafeName" placeholder="e.g. Brew House Cafe" />
+        </div>
+        <div class="form-group">
+          <label>Your Name *</label>
+          <input type="text" id="ownerName" placeholder="Owner's name" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mobile Number *</label>
+          <input type="tel" id="mobile" placeholder="10-digit mobile" maxlength="10" />
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="email" placeholder="owner@cafe.com" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>City *</label>
+          <input type="text" id="city" placeholder="e.g. Hyderabad" />
+        </div>
+        <div class="form-group">
+          <label>Preferred Plan</label>
+          <select id="plan">
+            <option value="basic">Basic — ₹299/mo</option>
+            <option value="pro" selected>Pro — ₹699/mo</option>
+            <option value="business">Business — ₹1499/mo</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="signupError" style="color:#dc2626;font-size:0.82rem;margin-bottom:10px;display:none"></div>
+      <button class="modal-submit" onclick="handleSignup()">🚀 Create My Cafe Account</button>
+      <p style="text-align:center;font-size:0.76rem;color:var(--gray-400);margin-top:12px">
+        By signing up you agree to our Terms of Service. 14-day free trial, no card required.
+      </p>
+    </div>
+
+    <div class="success-box" id="signupSuccess">
+      <div class="emoji">🎉</div>
+      <h3>You're all set!</h3>
+      <p id="successMsg">Your cafe has been registered! Our team will review your request and send your login details to your mobile/email within a few hours.</p>
+      <a href="#" onclick="closeModal()" class="btn btn-primary btn-lg" style="margin-top:20px;width:100%;justify-content:center">Close</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BACKEND = 'http://localhost:5000'; // Change to your production URL
+
+  function openModal(plan) {
+    if (plan) document.getElementById('plan').value = plan;
+    document.getElementById('signupModal').classList.add('open');
+    document.getElementById('signupForm').style.display = '';
+    document.getElementById('signupSuccess').style.display = 'none';
+  }
+
+  function closeModal() {
+    document.getElementById('signupModal').classList.remove('open');
+  }
+
+  document.getElementById('signupModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  async function handleSignup() {
+    const cafeName  = document.getElementById('cafeName').value.trim();
+    const ownerName = document.getElementById('ownerName').value.trim();
+    const mobile    = document.getElementById('mobile').value.trim();
+    const email     = document.getElementById('email').value.trim();
+    const city      = document.getElementById('city').value.trim();
+    const plan      = document.getElementById('plan').value;
+    const errEl     = document.getElementById('signupError');
+
+    errEl.style.display = 'none';
+
+    if (!cafeName || !ownerName || !mobile || !city) {
+      errEl.textContent = '⚠️ Please fill all required fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!/^\d{10}$/.test(mobile)) {
+      errEl.textContent = '⚠️ Please enter a valid 10-digit mobile number.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.querySelector('.modal-submit');
+    btn.textContent = 'Submitting...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BACKEND}/api/public/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cafeName, ownerName, mobile, email, city, plan }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('signupSuccess').style.display = 'block';
+        document.getElementById('successMsg').textContent =
+          `Your cafe "${cafeName}" has been registered! Our team will activate your account at ${data.subdomain}.cafebill.in and send login details to your mobile/email.`;
+      } else {
+        errEl.textContent = '❌ ' + (data.error || 'Registration failed. Please try again.');
+        errEl.style.display = 'block';
+      }
+    } catch(e) {
+      errEl.textContent = '❌ Unable to connect. Please try again.';
+      errEl.style.display = 'block';
+    }
+
+    btn.textContent = '🚀 Create My Cafe Account';
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>
