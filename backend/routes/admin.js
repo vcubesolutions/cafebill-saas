@@ -65,7 +65,7 @@ async function sendWelcomeEmail(ownerName, email, subdomain) {
             </p>
           </div>
           <div style="background:#f9fafb;padding:16px;text-align:center;border-top:1px solid #eee">
-            <p style="color:#9ca3af;font-size:12px;margin:0">Powered by CafeBill SaaS · vcubesolutions.in</p>
+            <p style="color:#9ca3af;font-size:12px;margin:0">Powered by CafeBill SaaS · vcubesolultions.in</p>
           </div>
         </div>
       `,
