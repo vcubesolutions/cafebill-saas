@@ -48,8 +48,8 @@ export default function App() {
           }
         })
         .catch(() => {
-          // If request fails (e.g. tenant not found), show login anyway
-          setAppState("login");
+          // API failed — show setpin so new tenants can still set up
+          setAppState("setpin");
         });
     }
   }, []);
