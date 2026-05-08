@@ -34,4 +34,4 @@ services:
       - key: EMAIL_SECURE
         value: true
       - key: BASE_DOMAIN
-        value: vcubesolultions.in
+        value: cafebilling.vcubesolultions.in

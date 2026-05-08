@@ -12,20 +12,20 @@
  */
 import axios from "axios";
 
-const RESERVED = new Set(["admin", "www", "api", "app", "landing", "static", "localhost"]);
+const RESERVED = new Set(["admin", "www", "api", "app", "landing", "static", "localhost", "cafebilling"]);
 
 /** Derive the current tenant subdomain */
 export function getTenantId() {
-  // 1. Subdomain (production: mycafe.cafebill.in)
-  const host  = window.location.hostname;
-  const parts = host.split(".");
-  if (parts.length >= 2 && !RESERVED.has(parts[0]) && parts[0] !== "localhost") {
-    return parts[0];
-  }
-  // 2. Query param (dev: localhost:3001?tenant=mycafe)
+  // 1. Query param — highest priority (?tenant=mycafe)
   const qp = new URLSearchParams(window.location.search).get("tenant");
   if (qp) return qp;
-  // 3. localStorage (dev: set once, persists across page loads)
+  // 2. Subdomain (production with wildcard DNS: mycafe.domain.in)
+  const host  = window.location.hostname;
+  const parts = host.split(".");
+  if (parts.length >= 3 && !RESERVED.has(parts[0]) && parts[0] !== "localhost") {
+    return parts[0];
+  }
+  // 3. localStorage (persists across page loads)
   return localStorage.getItem("tenant_id") || "";
 }
 

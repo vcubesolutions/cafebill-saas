@@ -216,7 +216,7 @@
     <div class="field"><label>Owner</label><input type="text" id="act-ownerName" disabled /></div>
     <div class="field"><label>Mobile</label><input type="text" id="act-mobile" disabled /></div>
     <div class="field">
-      <label>Subdomain * (will be: <b id="act-preview">—</b>.vcubesolultions.in)</label>
+      <label>Subdomain * (will be: <b id="act-preview">—</b>.cafebilling.vcubesolultions.in)</label>
       <input type="text" id="act-subdomain" placeholder="e.g. brewhousehyd" oninput="updatePreview()" />
     </div>
     <div class="field"><label>Plan</label>
@@ -426,7 +426,7 @@ async function activateRequest() {
   const d = await r.json();
   if (d.success) {
     closeModal('activateModal');
-    alert(`✅ Tenant activated!\n\nURL: ${subdomain}.vcubesolultions.in\nPlan: ${plan}\n14-day trial started.`);
+    alert(`✅ Tenant activated!\n\nURL: https://cafebilling.vcubesolultions.in/app?tenant=${subdomain}\nPlan: ${plan}\n14-day trial started.`);
     loadRequests(); loadStats();
   } else {
     errEl.textContent = '❌ ' + (d.error || 'Activation failed');
@@ -451,7 +451,7 @@ function renderTenants(list) {
         ${list.map(t => `
           <tr>
             <td><b>${t.cafe_name}</b><br/><span style="font-size:0.75rem;color:#6b7280">${t.owner_name}</span></td>
-            <td><a href="http://${t.subdomain}.vcubesolultions.in" target="_blank" style="color:#ea580c;font-weight:600">${t.subdomain}.vcubesolultions.in</a></td>
+            <td><a href="https://cafebilling.vcubesolultions.in/app?tenant=${t.subdomain}" target="_blank" style="color:#ea580c;font-weight:600">cafebilling.vcubesolultions.in/app?tenant=${t.subdomain}</a></td>
             <td>${t.mobile}</td>
             <td><span class="badge badge-${t.plan}">${t.plan}</span></td>
             <td><span class="badge badge-${t.status}">${t.status}</span></td>
@@ -529,7 +529,7 @@ async function createTenant() {
   });
   const d = await r.json();
   if (d.success) {
-    alert(`✅ Tenant created!\n\n${body.subdomain}.vcubesolultions.in`);
+    alert(`✅ Tenant created!\n\nhttps://cafebilling.vcubesolultions.in/app?tenant=${body.subdomain}`);
     ['cr-cafeName','cr-ownerName','cr-mobile','cr-email','cr-city','cr-subdomain'].forEach(id => document.getElementById(id).value = '');
     loadStats();
   } else {

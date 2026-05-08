@@ -26,8 +26,8 @@ async function sendWelcomeEmail(ownerName, email, subdomain) {
 
     const BASE_DOMAIN = process.env.BASE_DOMAIN || "";
     const loginUrl = BASE_DOMAIN
-      ? `https://${subdomain}.${BASE_DOMAIN}/app`
-      : `https://${subdomain}.onrender.com/app`;
+      ? `https://${BASE_DOMAIN}/app?tenant=${subdomain}`
+      : `https://${process.env.RENDER_EXTERNAL_URL || "your-app.onrender.com"}/app?tenant=${subdomain}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -65,7 +65,7 @@ async function sendWelcomeEmail(ownerName, email, subdomain) {
             </p>
           </div>
           <div style="background:#f9fafb;padding:16px;text-align:center;border-top:1px solid #eee">
-            <p style="color:#9ca3af;font-size:12px;margin:0">Powered by CafeBill SaaS · vcubesolultions.in</p>
+            <p style="color:#9ca3af;font-size:12px;margin:0">Powered by CafeBill SaaS · cafebilling.vcubesolultions.in</p>
           </div>
         </div>
       `,
