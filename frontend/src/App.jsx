@@ -24,19 +24,26 @@ export default function App() {
       return;
     }
 
-    const token = localStorage.getItem("cafe_token");
-    const cafe  = localStorage.getItem("cafe_info");
-    const role  = localStorage.getItem("user_role") || "owner";
-    const staff = localStorage.getItem("staff_info");
+    const token        = localStorage.getItem("cafe_token");
+    const cafe         = localStorage.getItem("cafe_info");
+    const role         = localStorage.getItem("user_role") || "owner";
+    const staff        = localStorage.getItem("staff_info");
+    const savedTenant  = localStorage.getItem("active_tenant");
 
-    if (token && cafe) {
-      // Already logged in — restore session
+    if (token && cafe && savedTenant === tenantId) {
+      // Already logged in for this tenant — restore session
       setCafeInfo(JSON.parse(cafe));
       setUserRole(role);
       if (staff) setStaffInfo(JSON.parse(staff));
       setActivePage("orders");
       setAppState("app");
     } else {
+      // Different tenant or not logged in — clear old session
+      localStorage.removeItem("cafe_token");
+      localStorage.removeItem("cafe_info");
+      localStorage.removeItem("user_role");
+      localStorage.removeItem("staff_info");
+      localStorage.removeItem("active_tenant");
       // Not logged in — check if setup is done
       api.get("/api/setup/cafe-status")
         .then(res => {
@@ -64,6 +71,7 @@ export default function App() {
     setCafeInfo(data.cafe || data);
     setUserRole(role);
     setStaffInfo(staff);
+    localStorage.setItem("active_tenant", getTenantId());
     setActivePage("orders");
     setAppState("app");
   };
@@ -73,6 +81,7 @@ export default function App() {
     localStorage.removeItem("cafe_info");
     localStorage.removeItem("user_role");
     localStorage.removeItem("staff_info");
+    localStorage.removeItem("active_tenant");
     setCafeInfo(null);
     setUserRole("owner");
     setStaffInfo(null);
