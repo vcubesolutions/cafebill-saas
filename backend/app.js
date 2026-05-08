@@ -3,6 +3,8 @@ const express    = require("express");
 const cors       = require("cors");
 const path       = require("path");
 
+const { initSchema } = require("./db/db");
+const { seedAdmin }  = require("./db/masterDb");
 const tenantMiddleware = require("./middleware/tenant");
 const { router: publicRouter } = require("./routes/public");
 const adminRouter  = require("./routes/admin");
@@ -77,11 +79,25 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, "../landing/index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`\n☕ CafeBill SaaS Backend running on port ${PORT}`);
+// ── Initialize DB schema then start server ────────────────────
+async function start() {
+  try {
+    await initSchema();
+    await seedAdmin();
+    console.log("✅ Database ready");
+  } catch (e) {
+    console.error("❌ DB init failed:", e.message);
+    process.exit(1);
+  }
+
+  app.listen(PORT, () => {
+    console.log(`\n☕ CafeBill SaaS Backend running on port ${PORT}`);
   console.log(`   Landing page : http://localhost:${PORT}`);
   console.log(`   Admin panel  : http://localhost:${PORT}/admin`);
   console.log(`   API          : http://localhost:${PORT}/api`);
   console.log(`   Tenant app   : http://localhost:${PORT}/app?tenant=yoursubdomain`);
   console.log(`\n   Dev tip: Use ?tenant=yoursubdomain in the browser URL or API calls\n`);
-});
+  });
+}
+
+start();

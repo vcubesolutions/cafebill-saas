@@ -1,111 +1,40 @@
 /**
- * tenantDb.js — Returns a per-tenant SQLite database.
- * Each tenant gets their own .db file in db/data/tenants/
- * Connection is cached so we don't open a new file on every request.
+ * tenantDb.js — Async helpers for tenant-scoped DB operations.
+ * All queries automatically filter by tenant_id.
  */
-const Database = require("better-sqlite3");
-const path = require("path");
-const fs = require("fs");
+const { queryAll, queryOne, execute } = require("./db");
 
-// In production (Render), DB_PATH points to the persistent disk mount.
-// In development, defaults to backend/db/data/tenants/
-const BASE_DIR = process.env.DB_PATH || path.join(__dirname, "data");
-const TENANT_DIR = path.join(BASE_DIR, "tenants");
-if (!fs.existsSync(TENANT_DIR)) fs.mkdirSync(TENANT_DIR, { recursive: true });
-
-// Connection cache
-const connections = {};
-
-function getTenantDb(subdomain) {
-  if (connections[subdomain]) return connections[subdomain];
-
-  const dbPath = path.join(TENANT_DIR, `${subdomain}.db`);
-  const db = new Database(dbPath);
-  db.pragma("journal_mode = WAL");
-
-  // ── Initialize tenant schema ──────────────────────────────
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS cafe_info (
-      id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      cafe_name  TEXT NOT NULL,
-      owner_name TEXT NOT NULL,
-      mobile     TEXT NOT NULL,
-      email      TEXT,
-      city       TEXT,
-      pin        TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS items (
-      id       INTEGER PRIMARY KEY AUTOINCREMENT,
-      name     TEXT NOT NULL,
-      price    REAL NOT NULL,
-      category TEXT DEFAULT '',
-      image    TEXT DEFAULT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS orders (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      customerName TEXT NOT NULL,
-      tableNo      TEXT DEFAULT '',
-      items        TEXT NOT NULL,
-      total        REAL NOT NULL,
-      paymentMode  TEXT DEFAULT 'cash',
-      createdAt    DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS staff (
-      id     INTEGER PRIMARY KEY AUTOINCREMENT,
-      name   TEXT NOT NULL,
-      role   TEXT DEFAULT 'Cashier',
-      pin    TEXT NOT NULL,
-      active INTEGER DEFAULT 1
-    );
-
-    CREATE TABLE IF NOT EXISTS categories (
-      id        INTEGER PRIMARY KEY AUTOINCREMENT,
-      name      TEXT NOT NULL,
-      icon      TEXT DEFAULT '🍽️',
-      sortOrder INTEGER DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS business_settings (
-      id                   INTEGER PRIMARY KEY AUTOINCREMENT,
-      currency             TEXT DEFAULT 'INR',
-      gstEnabled           INTEGER DEFAULT 1,
-      gstPercentage        REAL DEFAULT 5,
-      serviceCharge        INTEGER DEFAULT 0,
-      serviceChargePercent REAL DEFAULT 10,
-      billPrefix           TEXT DEFAULT 'BILL'
-    );
-
-    CREATE TABLE IF NOT EXISTS payment_methods (
-      id    INTEGER PRIMARY KEY AUTOINCREMENT,
-      cash  INTEGER DEFAULT 1,
-      upi   INTEGER DEFAULT 0,
-      upiId TEXT DEFAULT '',
-      card  INTEGER DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS otps (
-      id        INTEGER PRIMARY KEY AUTOINCREMENT,
-      mobile    TEXT NOT NULL,
-      otp       TEXT NOT NULL,
-      expiresAt INTEGER NOT NULL
-    );
-  `);
-
-  connections[subdomain] = db;
-  return db;
+/** Fetch all rows for a tenant */
+async function tenantQueryAll(sql, tenantId, args = []) {
+  return queryAll(sql, [tenantId, ...args]);
 }
 
-function deleteTenantDb(subdomain) {
-  if (connections[subdomain]) {
-    connections[subdomain].close();
-    delete connections[subdomain];
+/** Fetch one row for a tenant */
+async function tenantQueryOne(sql, tenantId, args = []) {
+  return queryOne(sql, [tenantId, ...args]);
+}
+
+/** Run INSERT/UPDATE/DELETE for a tenant */
+async function tenantExecute(sql, tenantId, args = []) {
+  return execute(sql, [tenantId, ...args]);
+}
+
+/** Create initial cafe_info record when a new tenant is activated */
+async function initTenant(tenantId, cafeName, ownerName, mobile, email, city) {
+  await execute("DELETE FROM cafe_info WHERE tenant_id=?", [tenantId]);
+  await execute(
+    "INSERT INTO cafe_info (tenant_id, cafe_name, owner_name, mobile, email, city) VALUES (?,?,?,?,?,?)",
+    [tenantId, cafeName, ownerName, mobile, email || "", city || ""]
+  );
+}
+
+/** Delete all data for a tenant (when deleting a tenant) */
+async function deleteTenantData(tenantId) {
+  const tables = ["cafe_info","items","orders","staff","categories",
+                  "business_settings","payment_methods","otps"];
+  for (const t of tables) {
+    await execute(`DELETE FROM ${t} WHERE tenant_id=?`, [tenantId]);
   }
-  const dbPath = path.join(TENANT_DIR, `${subdomain}.db`);
-  if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
 }
 
-module.exports = { getTenantDb, deleteTenantDb };
+module.exports = { tenantQueryAll, tenantQueryOne, tenantExecute, initTenant, deleteTenantData };
