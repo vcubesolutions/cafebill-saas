@@ -36,6 +36,7 @@ export default function Orders({ setActivePage }) {
   const [search, setSearch]             = useState("");
   const [loading, setLoading]           = useState(false);
   const [success, setSuccess]           = useState("");
+  const [showCart, setShowCart]         = useState(false);
   const [bizSettings, setBizSettings]   = useState({
     gstEnabled: true, gstPercentage: 5,
     serviceCharge: false, serviceChargePercent: 10, currency: "INR",
@@ -91,8 +92,10 @@ export default function Orders({ setActivePage }) {
     paymentMethods.card && { id: "card", label: "💳 Card" },
   ].filter(Boolean);
 
+  const totalItems = cart.reduce((s, c) => s + c.qty, 0);
+
   return (
-    <div className="max-w-6xl mx-auto p-3">
+    <div className="max-w-6xl mx-auto p-3 pb-24 lg:pb-3">
       {success && (
         <div className="bg-green-100 text-green-700 px-4 py-3 rounded-xl mb-4 font-bold text-center text-lg animate-pulse">
           {success}
@@ -127,7 +130,7 @@ export default function Orders({ setActivePage }) {
               {categories.map(cat => (
                 <div key={cat}>
                   {cat && <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">{cat}</p>}
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                     {filtered.filter(i => (i.category || "") === cat).map(item => {
                       const qty = cartQty(item.id);
                       return (
@@ -159,8 +162,8 @@ export default function Orders({ setActivePage }) {
           )}
         </div>
 
-        {/* RIGHT: Order Summary */}
-        <div className="lg:w-80 w-full">
+        {/* RIGHT: Order Summary — hidden on mobile (shown as bottom sheet) */}
+        <div className="hidden lg:block lg:w-80 w-full">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 sticky top-4 overflow-hidden">
             <div className="bg-orange-600 px-4 py-3 text-white">
               <h3 className="font-bold text-base">🧾 Order Summary</h3>
@@ -267,6 +270,97 @@ export default function Orders({ setActivePage }) {
           </div>
         </div>
       </div>
+
+      {/* ── Mobile: sticky cart button ── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-3 pb-3 pt-2 bg-gradient-to-t from-orange-50 to-transparent">
+        <button onClick={() => setShowCart(true)}
+          className="w-full bg-orange-600 text-white py-3.5 rounded-2xl font-bold text-base shadow-lg flex items-center justify-between px-5">
+          <span>🛒 {totalItems > 0 ? `${totalItems} item${totalItems > 1 ? "s" : ""}` : "View Cart"}</span>
+          {totalItems > 0 && <span>{sym}{grandTotal.toFixed(2)}</span>}
+        </button>
+      </div>
+
+      {/* ── Mobile: cart bottom sheet ── */}
+      {showCart && (
+        <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowCart(false)} />
+          <div className="relative bg-white rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+            </div>
+            <div className="bg-orange-600 px-4 py-3 text-white flex items-center justify-between">
+              <h3 className="font-bold text-base">🧾 Order Summary</h3>
+              <button onClick={() => setShowCart(false)} className="text-orange-200 text-xl font-bold">✕</button>
+            </div>
+            <div className="p-4 space-y-3 overflow-y-auto flex-1">
+              <div className="flex gap-2">
+                <input type="text" placeholder="Customer Name *" value={customerName}
+                  onChange={e => setCustomerName(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-3 py-2 flex-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                <input type="text" placeholder="Table" value={tableNo}
+                  onChange={e => setTableNo(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-3 py-2 w-16 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 text-center" />
+              </div>
+              {cart.length === 0 ? (
+                <div className="text-center py-8 text-gray-300">
+                  <div className="text-4xl mb-2">🛒</div>
+                  <p className="text-sm">Tap items to add</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {cart.map(c => (
+                    <div key={c.id} className="flex items-center gap-2 bg-gray-50 rounded-xl px-2 py-1.5">
+                      <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-white border border-gray-100">
+                        {c.image ? <img src={c.image} alt={c.name} className="w-full h-full object-cover" /> : <DefaultImage name={c.name} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-800 truncate">{c.name}</p>
+                        <p className="text-xs text-orange-600 font-bold">{sym}{(c.price * c.qty).toFixed(0)}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => updateQty(c.id, -1)} className="w-7 h-7 rounded-full bg-white border border-gray-200 font-bold text-gray-600 flex items-center justify-center">−</button>
+                        <span className="text-xs font-bold w-4 text-center">{c.qty}</span>
+                        <button onClick={() => updateQty(c.id, 1)} className="w-7 h-7 rounded-full bg-white border border-gray-200 font-bold text-gray-600 flex items-center justify-center">+</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {cart.length > 0 && (
+                <div className="border-t pt-3 space-y-1.5 text-sm">
+                  <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>{sym}{subtotal.toFixed(2)}</span></div>
+                  {bizSettings.gstEnabled && <div className="flex justify-between text-gray-500"><span>GST ({bizSettings.gstPercentage || 5}%)</span><span>{sym}{gst.toFixed(2)}</span></div>}
+                  {bizSettings.serviceCharge && <div className="flex justify-between text-gray-500"><span>Service ({bizSettings.serviceChargePercent || 10}%)</span><span>{sym}{sc.toFixed(2)}</span></div>}
+                  <div className="flex justify-between font-bold text-orange-700 text-base pt-1 border-t"><span>Total</span><span>{sym}{grandTotal.toFixed(2)}</span></div>
+                </div>
+              )}
+              {cart.length > 0 && enabledModes.length > 1 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-1.5">Payment Mode</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {enabledModes.map(m => (
+                      <button key={m.id} onClick={() => setPaymentMode(m.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${paymentMode === m.id ? "bg-orange-600 text-white border-orange-600" : "bg-white text-gray-600 border-gray-200"}`}>
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-4 space-y-2 border-t bg-white">
+              {cart.length > 0 && (
+                <button onClick={() => setCart([])} className="w-full border border-red-200 text-red-400 py-2 rounded-xl text-sm font-semibold">🗑️ Clear All</button>
+              )}
+              <button onClick={async () => { await handlePlaceOrder(); if (cart.length === 0) setShowCart(false); }}
+                disabled={loading || cart.length === 0}
+                className="w-full bg-orange-600 text-white py-3.5 rounded-xl font-bold disabled:opacity-40 text-base">
+                {loading ? "Placing..." : `✅ Place Order${cart.length > 0 ? ` · ${sym}${grandTotal.toFixed(0)}` : ""}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

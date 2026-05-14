@@ -139,7 +139,7 @@ export default function App() {
 
   // ── Main Billing App ─────────────────────────────────────
   return (
-    <div className="min-h-screen bg-orange-50">
+    <div className="min-h-screen bg-orange-50 overflow-x-hidden w-full">
       <Navbar
         activePage={activePage}
         setActivePage={setActivePage}
