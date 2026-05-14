@@ -7,15 +7,17 @@ import Bills from "./components/Bills";
 import MenuItems from "./components/MenuItems";
 import StaffManagement from "./components/StaffManagement";
 import Settings from "./components/Settings";
+import SetupWizard from "./components/SetupWizard";
 import api, { getTenantId } from "./utils/api";
 
 export default function App() {
   // States: loading | no-tenant | setpin | login | app
-  const [appState, setAppState]   = useState("loading");
-  const [cafeInfo, setCafeInfo]   = useState(null);
-  const [userRole, setUserRole]   = useState("owner");
-  const [staffInfo, setStaffInfo] = useState(null);
+  const [appState, setAppState]     = useState("loading");
+  const [cafeInfo, setCafeInfo]     = useState(null);
+  const [userRole, setUserRole]     = useState("owner");
+  const [staffInfo, setStaffInfo]   = useState(null);
   const [activePage, setActivePage] = useState("orders");
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     const tenantId = getTenantId();
@@ -48,15 +50,24 @@ export default function App() {
       api.get("/api/setup/cafe-status")
         .then(res => {
           if (res.data.setupDone) {
+            // Cafe exists and PIN is set → go to login
             setAppState("login");
-          } else {
-            // hasCafe but no PIN set yet → first-time PIN setup
+          } else if (res.data.hasCafe) {
+            // Cafe exists but PIN not set yet → first-time PIN setup
             setAppState("setpin");
+          } else {
+            // Cafe record missing (shouldn't normally happen)
+            setAppState("no-tenant");
           }
         })
-        .catch(() => {
-          // API failed — show setpin so new tenants can still set up
-          setAppState("setpin");
+        .catch((err) => {
+          if (err?.response?.status === 404) {
+            // Tenant not registered — show proper error
+            setAppState("no-tenant");
+          } else {
+            // Other server error — still try setpin as fallback
+            setAppState("setpin");
+          }
         });
     }
   }, []);
@@ -66,14 +77,26 @@ export default function App() {
   };
 
   const handleLoggedIn = (data) => {
-    const role  = data.role || "owner";
-    const staff = data.staff || null;
+    const role     = data.role || "owner";
+    const staff    = data.staff || null;
+    const tenantId = getTenantId();
     setCafeInfo(data.cafe || data);
     setUserRole(role);
     setStaffInfo(staff);
-    localStorage.setItem("active_tenant", getTenantId());
+    localStorage.setItem("active_tenant", tenantId);
     setActivePage("orders");
     setAppState("app");
+    // Show setup wizard on first login (owner only, not staff)
+    const wizardKey = `wizard_done_${tenantId}`;
+    if (role === "owner" && !localStorage.getItem(wizardKey)) {
+      setShowWizard(true);
+    }
+  };
+
+  const handleWizardComplete = () => {
+    const wizardKey = `wizard_done_${getTenantId()}`;
+    localStorage.setItem(wizardKey, "1");
+    setShowWizard(false);
   };
 
   const handleLogout = () => {
@@ -105,23 +128,40 @@ export default function App() {
     );
   }
 
-  // ── No tenant configured ─────────────────────────────────
+  // ── No tenant / cafe not found ───────────────────────────
   if (appState === "no-tenant") {
+    const tenantId = getTenantId();
     return (
       <div className="min-h-screen bg-orange-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">☕</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">CafeBill SaaS</h1>
-          <p className="text-gray-500 mb-6">
-            No cafe found. Please open this app from your cafe's unique URL.
-          </p>
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-left">
-            <p className="text-xs font-semibold text-orange-700 mb-2">For development:</p>
-            <p className="text-xs text-gray-600">
-              Add <code className="bg-gray-100 px-1 rounded">?tenant=yourcafe</code> to the URL, or set{" "}
-              <code className="bg-gray-100 px-1 rounded">tenant_id</code> in localStorage.
-            </p>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Cafe Not Found</h1>
+          {tenantId ? (
+            <>
+              <p className="text-gray-500 mb-6">
+                The cafe <span className="font-semibold text-orange-600">"{tenantId}"</span> hasn't been registered yet.
+                Please contact your admin or check the link in your welcome email.
+              </p>
+              <a
+                href="/"
+                className="block w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition-all text-base"
+              >
+                ← Back to Home
+              </a>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-500 mb-6">
+                Please open this app from your cafe's unique login link.
+              </p>
+              <a
+                href="/"
+                className="block w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition-all text-base"
+              >
+                ← Go to CafeBill
+              </a>
+            </>
+          )}
         </div>
       </div>
     );
@@ -140,6 +180,11 @@ export default function App() {
   // ── Main Billing App ─────────────────────────────────────
   return (
     <div className="min-h-screen bg-orange-50 overflow-x-hidden w-full">
+      {/* First-time setup wizard (owner only, shown once) */}
+      {showWizard && (
+        <SetupWizard cafeInfo={cafeInfo} onComplete={handleWizardComplete} />
+      )}
+
       <Navbar
         activePage={activePage}
         setActivePage={setActivePage}
