@@ -27,3 +27,13 @@ button, a {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
+
+/* iPhone safe area (notch / home indicator) */
+.safe-top    { padding-top:    env(safe-area-inset-top);    }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.pb-safe     { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+
+/* PWA standalone: remove browser chrome padding */
+@media (display-mode: standalone) {
+  body { padding-top: env(safe-area-inset-top); }
+}

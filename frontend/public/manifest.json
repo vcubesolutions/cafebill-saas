@@ -1,0 +1,42 @@
+{
+  "name": "CafeBill",
+  "short_name": "CafeBill",
+  "description": "Smart billing software for restaurants & cafes",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff7ed",
+  "theme_color": "#ea580c",
+  "categories": ["business", "food"],
+  "icons": [
+    {
+      "src": "/app/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/app/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Order",
+      "short_name": "Order",
+      "description": "Start a new order",
+      "url": "/app/?page=orders",
+      "icons": [{ "src": "/app/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Bills",
+      "short_name": "Bills",
+      "description": "View all bills",
+      "url": "/app/?page=bills",
+      "icons": [{ "src": "/app/icon.svg", "sizes": "any" }]
+    }
+  ]
+}

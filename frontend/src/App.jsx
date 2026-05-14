@@ -8,6 +8,7 @@ import MenuItems from "./components/MenuItems";
 import StaffManagement from "./components/StaffManagement";
 import Settings from "./components/Settings";
 import SetupWizard from "./components/SetupWizard";
+import InstallPrompt from "./components/InstallPrompt";
 import api, { getTenantId } from "./utils/api";
 
 export default function App() {
@@ -203,6 +204,9 @@ export default function App() {
       <footer className="text-center text-xs text-gray-400 pb-6">
         ☕ {cafeInfo?.cafeName || "CafeBill"} — Powered by CafeBill SaaS
       </footer>
+
+      {/* PWA install prompt (Android banner + iOS instructions) */}
+      {!showWizard && <InstallPrompt />}
     </div>
   );
 }

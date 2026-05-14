@@ -13,6 +13,18 @@ const PLANS = {
 
 router.get("/plans", (req, res) => res.json(PLANS));
 
+// Lightweight endpoint for PWA manifest — returns cafe name for a tenant
+router.get("/cafe-name", async (req, res) => {
+  try {
+    const subdomain = req.query.tenant || req.headers["x-tenant-id"];
+    if (!subdomain) return res.json({ cafeName: "CafeBill" });
+    const tenant = await queryOne("SELECT cafe_name FROM tenants WHERE subdomain=?", [subdomain]);
+    res.json({ cafeName: tenant?.cafe_name || "CafeBill" });
+  } catch {
+    res.json({ cafeName: "CafeBill" });
+  }
+});
+
 router.post("/register", async (req, res) => {
   try {
     const { cafeName, ownerName, mobile, email, city, plan } = req.body;

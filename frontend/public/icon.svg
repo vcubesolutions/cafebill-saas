@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Orange rounded background -->
+  <rect width="512" height="512" rx="100" fill="#ea580c"/>
+  <!-- Cup body -->
+  <rect x="136" y="220" width="200" height="170" rx="18" fill="white"/>
+  <!-- Cup handle -->
+  <path d="M336,240 Q390,240 390,300 Q390,360 336,360" stroke="white" stroke-width="24" fill="none" stroke-linecap="round"/>
+  <!-- Saucer -->
+  <ellipse cx="236" cy="400" rx="130" ry="18" fill="white" opacity="0.5"/>
+  <!-- Coffee surface -->
+  <ellipse cx="236" cy="228" rx="100" ry="16" fill="#c2410c"/>
+  <!-- Steam lines -->
+  <path d="M196,195 Q186,165 196,140" stroke="white" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M236,185 Q226,155 236,130" stroke="white" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M276,195 Q266,165 276,140" stroke="white" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <!-- Bill text -->
+  <text x="236" y="360" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="52" fill="#ea580c">BILL</text>
+</svg>
