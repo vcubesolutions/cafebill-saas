@@ -242,14 +242,56 @@
     .footer-col a:hover { color: var(--orange); }
     .footer-bottom { border-top: 1px solid #374151; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; font-size: 0.8rem; color: #6b7280; }
 
+    /* ── HAMBURGER MENU ──────────────────────────────────── */
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 6px;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 2px;
+      background: var(--gray-800); border-radius: 2px;
+      transition: all .3s;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu {
+      display: none; position: fixed; top: 64px; left: 0; right: 0;
+      background: white; border-bottom: 1px solid #f1f1f1;
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      z-index: 99; padding: 16px 5% 20px;
+      flex-direction: column; gap: 4px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      display: block; font-size: 1rem; font-weight: 500;
+      color: var(--gray-600); padding: 12px 0;
+      border-bottom: 1px solid var(--gray-100);
+      transition: color .2s;
+    }
+    .mobile-menu a:last-child { border-bottom: none; }
+    .mobile-menu a:hover { color: var(--orange); }
+    .mobile-menu .mobile-cta {
+      display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;
+    }
+    .mobile-menu .mobile-cta a {
+      flex: 1; text-align: center; border: none; padding: 12px;
+      border-radius: 50px; font-weight: 600; font-size: 0.9rem;
+    }
+
     @media (max-width: 768px) {
       .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .nav-right-btns .btn-outline:first-child { display: none; } /* hide "View Plans" */
       .footer-top { grid-template-columns: 1fr 1fr; }
       .mockup-body { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .footer-top { grid-template-columns: 1fr; }
       .form-row { grid-template-columns: 1fr; }
+      .nav-right-btns { gap: 6px; }
+      .nav-right-btns .btn { padding: 8px 14px; font-size: 0.8rem; }
     }
   </style>
 </head>
@@ -264,12 +306,27 @@
     <a href="#pricing">Pricing</a>
     <a href="/admin" style="color:#6b7280">Admin</a>
   </div>
-  <div style="display:flex;gap:10px;">
+  <div class="nav-right-btns" style="display:flex;gap:10px;align-items:center;">
     <a href="#pricing" class="btn btn-outline" onclick="openModal('basic')">View Plans</a>
     <a href="#" class="btn btn-outline" onclick="openLoginModal(); return false;">Login</a>
     <a href="#" class="btn btn-primary" onclick="openModal(); return false;">Get Started Free</a>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
+
+<!-- ── MOBILE MENU ─────────────────────────────────────────── -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features" onclick="closeMobileMenu()">✨ Features</a>
+  <a href="#how-it-works" onclick="closeMobileMenu()">🔄 How it works</a>
+  <a href="#pricing" onclick="closeMobileMenu()">💰 Pricing</a>
+  <a href="/admin" style="color:#6b7280" onclick="closeMobileMenu()">🔐 Admin</a>
+  <div class="mobile-cta">
+    <a href="#" class="btn btn-outline" style="border:2px solid var(--orange);color:var(--orange);background:transparent;" onclick="openLoginModal(); closeMobileMenu(); return false;">Login</a>
+    <a href="#" class="btn btn-primary" style="background:var(--orange);color:white;" onclick="openModal(); closeMobileMenu(); return false;">Get Started Free</a>
+  </div>
+</div>
 
 <!-- ── HERO ───────────────────────────────────────────────── -->
 <section class="hero">
@@ -679,6 +736,27 @@
 
 <script>
   const BACKEND = ''; // Empty = same origin (works in both dev and production)
+
+  function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    const btn  = document.getElementById('hamburgerBtn');
+    menu.classList.toggle('open');
+    btn.classList.toggle('open');
+  }
+
+  function closeMobileMenu() {
+    document.getElementById('mobileMenu').classList.remove('open');
+    document.getElementById('hamburgerBtn').classList.remove('open');
+  }
+
+  // Close mobile menu when clicking outside
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobileMenu');
+    const btn  = document.getElementById('hamburgerBtn');
+    if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+      closeMobileMenu();
+    }
+  });
 
   function openLoginModal() {
     document.getElementById('loginModal').classList.add('open');
