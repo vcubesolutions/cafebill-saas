@@ -85,6 +85,7 @@ export default function App() {
     setUserRole(role);
     setStaffInfo(staff);
     localStorage.setItem("active_tenant", tenantId);
+    localStorage.setItem("tenant_id", tenantId);   // fallback for getTenantId() in PWA mode
     setActivePage("orders");
     setAppState("app");
     // Show wizard only for owner — check server flag (works across all devices)
@@ -116,6 +117,7 @@ export default function App() {
     localStorage.removeItem("user_role");
     localStorage.removeItem("staff_info");
     localStorage.removeItem("active_tenant");
+    // keep tenant_id — it's needed so the PWA can still resolve the tenant after logout
     setCafeInfo(null);
     setUserRole("owner");
     setStaffInfo(null);

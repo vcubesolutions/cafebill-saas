@@ -25,6 +25,44 @@ router.get("/cafe-name", async (req, res) => {
   }
 });
 
+// Dynamic PWA Web App Manifest — correct name + start_url per tenant
+// Browser fetches this URL when user taps "Add to Home Screen"
+router.get("/manifest", async (req, res) => {
+  const subdomain = req.query.tenant || req.headers["x-tenant-id"] || "";
+  let cafeName = "CafeBill";
+  if (subdomain) {
+    try {
+      const tenant = await queryOne("SELECT cafe_name FROM tenants WHERE subdomain=?", [subdomain]);
+      if (tenant?.cafe_name) cafeName = tenant.cafe_name;
+    } catch (_) {}
+  }
+  const words     = cafeName.split(" ");
+  const shortName = cafeName.length > 12 ? words[0] : cafeName;
+  const startUrl  = subdomain ? `/app/?tenant=${subdomain}` : "/app/";
+  const manifest  = {
+    name:             cafeName,
+    short_name:       shortName,
+    description:      "Smart billing for your cafe",
+    start_url:        startUrl,
+    scope:            "/app/",
+    display:          "standalone",
+    orientation:      "portrait",
+    background_color: "#fff7ed",
+    theme_color:      "#ea580c",
+    icons: [
+      { src: "/app/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any"       },
+      { src: "/app/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable"  },
+    ],
+    shortcuts: [
+      { name: "New Order", url: `${startUrl}&page=orders`, icons: [{ src: "/app/icon.svg", sizes: "any" }] },
+      { name: "Bills",     url: `${startUrl}&page=bills`,  icons: [{ src: "/app/icon.svg", sizes: "any" }] },
+    ],
+  };
+  res.setHeader("Content-Type", "application/manifest+json");
+  res.setHeader("Cache-Control", "no-cache"); // always fetch fresh so name changes reflect immediately
+  res.json(manifest);
+});
+
 router.post("/register", async (req, res) => {
   try {
     const { cafeName, ownerName, mobile, email, city, plan } = req.body;

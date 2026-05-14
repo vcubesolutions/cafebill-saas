@@ -26,51 +26,37 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// ── Set per-tenant manifest dynamically ──────────────────────
-function setDynamicManifest() {
+// ── Set per-tenant manifest (SYNCHRONOUS) ────────────────────
+// Point <link rel="manifest"> to the server-side dynamic endpoint RIGHT NOW,
+// before the browser fetches it. The server returns the correct cafe name
+// and start_url (with ?tenant=) so "Add to Home Screen" works properly.
+(function setDynamicManifest() {
   const params = new URLSearchParams(window.location.search);
-  const tenant = params.get("tenant") || localStorage.getItem("tenant_id");
+  const tenant = params.get("tenant");
   if (!tenant) return;
 
+  // Save to localStorage so PWA can recover tenant if URL loses the param
+  try { localStorage.setItem("tenant_id", tenant); } catch (_) {}
+
+  // Synchronously redirect the manifest link to our server endpoint.
+  // The browser fetches this URL when the user triggers "Add to Home Screen",
+  // and the server will return the right cafe name + start_url at that moment.
   const manifestEl = document.getElementById("pwa-manifest");
   if (manifestEl) {
-    // Fetch tenant info and build a custom manifest blob
-    fetch(`/api/public/cafe-name?tenant=${tenant}`)
-      .then((r) => r.json())
-      .then((data) => {
-        const name = data.cafeName || "CafeBill";
-        const manifest = {
-          name: `${name}`,
-          short_name: name.length > 12 ? name.split(" ")[0] : name,
-          description: "Smart billing for your cafe",
-          start_url: `/app/?tenant=${tenant}`,
-          scope: "/app/",
-          display: "standalone",
-          orientation: "portrait",
-          background_color: "#fff7ed",
-          theme_color: "#ea580c",
-          icons: [
-            { src: "/app/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-            { src: "/app/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
-          ],
-          shortcuts: [
-            { name: "New Order", url: `/app/?tenant=${tenant}&page=orders`, icons: [{ src: "/app/icon.svg", sizes: "any" }] },
-            { name: "Bills",     url: `/app/?tenant=${tenant}&page=bills`,  icons: [{ src: "/app/icon.svg", sizes: "any" }] },
-          ],
-        };
-        const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-        manifestEl.href = URL.createObjectURL(blob);
-
-        // Update page title and iOS title
-        document.title = `${name} — CafeBill`;
-        const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
-        if (appleTitleMeta) appleTitleMeta.content = name;
-      })
-      .catch(() => {}); // fallback to default manifest
+    manifestEl.href = `/api/public/manifest?tenant=${encodeURIComponent(tenant)}`;
   }
-}
 
-setDynamicManifest();
+  // Also update iOS home-screen title asynchronously (iOS uses the meta tag, not manifest name)
+  fetch(`/api/public/cafe-name?tenant=${encodeURIComponent(tenant)}`)
+    .then((r) => r.json())
+    .then((data) => {
+      const name = data.cafeName || "CafeBill";
+      document.title = `${name} — CafeBill`;
+      const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+      if (appleTitleMeta) appleTitleMeta.content = name;
+    })
+    .catch(() => {});
+})();
 
 // ── Render app ────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById("root")).render(
