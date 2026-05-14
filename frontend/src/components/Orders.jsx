@@ -95,14 +95,14 @@ export default function Orders({ setActivePage }) {
   const totalItems = cart.reduce((s, c) => s + c.qty, 0);
 
   return (
-    <div className="max-w-6xl mx-auto p-3 pb-24 lg:pb-3">
+    <div className="max-w-6xl mx-auto p-3 pb-24 md:pb-3">
       {success && (
         <div className="bg-green-100 text-green-700 px-4 py-3 rounded-xl mb-4 font-bold text-center text-lg animate-pulse">
           {success}
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
         {/* LEFT: Menu Grid */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -130,7 +130,7 @@ export default function Orders({ setActivePage }) {
               {categories.map(cat => (
                 <div key={cat}>
                   {cat && <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">{cat}</p>}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                     {filtered.filter(i => (i.category || "") === cat).map(item => {
                       const qty = cartQty(item.id);
                       return (
@@ -162,8 +162,8 @@ export default function Orders({ setActivePage }) {
           )}
         </div>
 
-        {/* RIGHT: Order Summary — hidden on mobile (shown as bottom sheet) */}
-        <div className="hidden lg:block lg:w-80 w-full">
+        {/* RIGHT: Order Summary — visible on tablet (md:) and desktop */}
+        <div className="hidden md:block md:w-72 lg:w-80 w-full shrink-0">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 sticky top-4 overflow-hidden">
             <div className="bg-orange-600 px-4 py-3 text-white">
               <h3 className="font-bold text-base">🧾 Order Summary</h3>
@@ -271,8 +271,8 @@ export default function Orders({ setActivePage }) {
         </div>
       </div>
 
-      {/* ── Mobile: sticky cart button ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-3 pb-3 pt-2 bg-gradient-to-t from-orange-50 to-transparent">
+      {/* ── Mobile only: sticky cart button (hidden on tablet+) ── */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 px-3 pb-3 pt-2 bg-gradient-to-t from-orange-50 to-transparent">
         <button onClick={() => setShowCart(true)}
           className="w-full bg-orange-600 text-white py-3.5 rounded-2xl font-bold text-base shadow-lg flex items-center justify-between px-5">
           <span>🛒 {totalItems > 0 ? `${totalItems} item${totalItems > 1 ? "s" : ""}` : "View Cart"}</span>
@@ -280,9 +280,9 @@ export default function Orders({ setActivePage }) {
         </button>
       </div>
 
-      {/* ── Mobile: cart bottom sheet ── */}
+      {/* ── Mobile only: cart bottom sheet ── */}
       {showCart && (
-        <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
+        <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowCart(false)} />
           <div className="relative bg-white rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
             <div className="flex justify-center pt-3 pb-1">
