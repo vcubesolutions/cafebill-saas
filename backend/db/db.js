@@ -52,6 +52,7 @@ async function initSchema() {
       plan         TEXT DEFAULT 'basic',
       status       TEXT DEFAULT 'trial',
       trial_ends   INTEGER,
+      wizard_done  INTEGER DEFAULT 0,
       created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -152,4 +153,12 @@ async function initSchema() {
   `);
 }
 
-module.exports = { getClient, queryAll, queryOne, execute, initSchema };
+/** Run migrations for columns added after initial schema */
+async function runMigrations() {
+  // Add wizard_done to tenants if it doesn't exist yet
+  try {
+    await getClient().execute("ALTER TABLE tenants ADD COLUMN wizard_done INTEGER DEFAULT 0");
+  } catch (_) { /* column already exists — safe to ignore */ }
+}
+
+module.exports = { getClient, queryAll, queryOne, execute, initSchema, runMigrations };

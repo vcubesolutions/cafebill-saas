@@ -3,7 +3,7 @@ const express    = require("express");
 const cors       = require("cors");
 const path       = require("path");
 
-const { initSchema } = require("./db/db");
+const { initSchema, runMigrations } = require("./db/db");
 const { seedAdmin }  = require("./db/masterDb");
 const tenantMiddleware = require("./middleware/tenant");
 const { router: publicRouter } = require("./routes/public");
@@ -83,6 +83,7 @@ app.use((req, res) => {
 async function start() {
   try {
     await initSchema();
+    await runMigrations();
     await seedAdmin();
     console.log("✅ Database ready");
   } catch (e) {

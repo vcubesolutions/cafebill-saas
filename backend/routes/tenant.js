@@ -334,7 +334,19 @@ router.post("/auth/reset-pin", async (req, res) => {
 router.get("/setup/cafe-status", async (req, res) => {
   try {
     const cafe = await queryOne("SELECT * FROM cafe_info WHERE tenant_id=? LIMIT 1", [T(req)]);
-    res.json({ setupDone: !!(cafe && cafe.pin), hasCafe: !!cafe });
+    res.json({
+      setupDone:  !!(cafe && cafe.pin),
+      hasCafe:    !!cafe,
+      wizardDone: !!(req.tenant && req.tenant.wizard_done),
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Mark setup wizard as completed — stored in DB so it works across all devices
+router.post("/setup/wizard-done", async (req, res) => {
+  try {
+    await execute("UPDATE tenants SET wizard_done=1 WHERE subdomain=?", [T(req)]);
+    res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

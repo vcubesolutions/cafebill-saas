@@ -77,7 +77,7 @@ export default function App() {
     setAppState("login");
   };
 
-  const handleLoggedIn = (data) => {
+  const handleLoggedIn = async (data) => {
     const role     = data.role || "owner";
     const staff    = data.staff || null;
     const tenantId = getTenantId();
@@ -87,17 +87,27 @@ export default function App() {
     localStorage.setItem("active_tenant", tenantId);
     setActivePage("orders");
     setAppState("app");
-    // Show setup wizard on first login (owner only, not staff)
-    const wizardKey = `wizard_done_${tenantId}`;
-    if (role === "owner" && !localStorage.getItem(wizardKey)) {
-      setShowWizard(true);
+    // Show wizard only for owner — check server flag (works across all devices)
+    if (role === "owner") {
+      try {
+        const res = await api.get("/api/setup/cafe-status");
+        if (!res.data.wizardDone) setShowWizard(true);
+      } catch {
+        // fallback: check localStorage if API fails
+        if (!localStorage.getItem(`wizard_done_${tenantId}`)) setShowWizard(true);
+      }
     }
   };
 
-  const handleWizardComplete = () => {
-    const wizardKey = `wizard_done_${getTenantId()}`;
-    localStorage.setItem(wizardKey, "1");
+  const handleWizardComplete = async () => {
     setShowWizard(false);
+    // Mark wizard as done on server (persists across devices)
+    try {
+      await api.post("/api/setup/wizard-done");
+    } catch {
+      // Fallback to localStorage if server call fails
+      localStorage.setItem(`wizard_done_${getTenantId()}`, "1");
+    }
   };
 
   const handleLogout = () => {
