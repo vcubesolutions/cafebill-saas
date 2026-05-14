@@ -19,14 +19,16 @@ export function getTenantId() {
   // 1. Query param — highest priority (?tenant=mycafe)
   const qp = new URLSearchParams(window.location.search).get("tenant");
   if (qp) return qp;
-  // 2. Subdomain (production with wildcard DNS: mycafe.domain.in)
+  // 2. localStorage — persists across page loads (set on login or first visit with ?tenant=)
+  const stored = localStorage.getItem("tenant_id");
+  if (stored) return stored;
+  // 3. Subdomain (production with wildcard DNS: mycafe.domain.in)
   const host  = window.location.hostname;
   const parts = host.split(".");
   if (parts.length >= 3 && !RESERVED.has(parts[0]) && parts[0] !== "localhost") {
     return parts[0];
   }
-  // 3. localStorage (persists across page loads)
-  return localStorage.getItem("tenant_id") || "";
+  return "";
 }
 
 /** Auth token stored on login */

@@ -26,27 +26,39 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// ── Set per-tenant manifest (SYNCHRONOUS) ────────────────────
-// Point <link rel="manifest"> to the server-side dynamic endpoint RIGHT NOW,
-// before the browser fetches it. The server returns the correct cafe name
-// and start_url (with ?tenant=) so "Add to Home Screen" works properly.
-(function setDynamicManifest() {
-  const params = new URLSearchParams(window.location.search);
-  const tenant = params.get("tenant");
-  if (!tenant) return;
+// ── Tenant bootstrap (runs synchronously before React renders) ───
+// 1. Resolve tenant from ?tenant= param OR localStorage
+// 2. Always write tenant_id to localStorage (so future loads without ?tenant= still work)
+// 3. Always inject ?tenant= into the address bar (so iOS "Add to Home Screen"
+//    saves the full correct URL including tenant)
+// 4. Point the PWA manifest link to the server-side dynamic endpoint
+(function bootstrapTenant() {
+  const params  = new URLSearchParams(window.location.search);
+  const fromUrl = params.get("tenant");
+  const fromStorage = localStorage.getItem("tenant_id");
+  const tenant  = fromUrl || fromStorage;
 
-  // Save to localStorage so PWA can recover tenant if URL loses the param
+  if (!tenant) return; // no tenant known yet — app will show "no-tenant" screen
+
+  // Persist tenant so app works even after URL loses the param (e.g. browser reload)
   try { localStorage.setItem("tenant_id", tenant); } catch (_) {}
 
-  // Synchronously redirect the manifest link to our server endpoint.
-  // The browser fetches this URL when the user triggers "Add to Home Screen",
-  // and the server will return the right cafe name + start_url at that moment.
+  // Inject ?tenant= into address bar RIGHT NOW (synchronous, before React renders)
+  // This ensures iOS Safari saves the correct URL when user taps "Add to Home Screen"
+  if (!fromUrl) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("tenant", tenant);
+    window.history.replaceState(null, "", url.toString());
+  }
+
+  // Point manifest link to server-side endpoint — browser fetches this when
+  // the user triggers "Add to Home Screen", getting correct name + start_url
   const manifestEl = document.getElementById("pwa-manifest");
   if (manifestEl) {
     manifestEl.href = `/api/public/manifest?tenant=${encodeURIComponent(tenant)}`;
   }
 
-  // Also update iOS home-screen title asynchronously (iOS uses the meta tag, not manifest name)
+  // Update iOS home-screen title (async — iOS uses meta tag for icon label)
   fetch(`/api/public/cafe-name?tenant=${encodeURIComponent(tenant)}`)
     .then((r) => r.json())
     .then((data) => {

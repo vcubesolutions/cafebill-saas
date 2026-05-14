@@ -27,14 +27,6 @@ export default function App() {
       return;
     }
 
-    // Ensure ?tenant= is always in the URL so iOS "Add to Home Screen"
-    // saves the full correct URL (including tenant) as the launch URL.
-    const url = new URL(window.location.href);
-    if (!url.searchParams.get("tenant") && tenantId) {
-      url.searchParams.set("tenant", tenantId);
-      window.history.replaceState(null, "", url.toString());
-    }
-
     const token        = localStorage.getItem("cafe_token");
     const cafe         = localStorage.getItem("cafe_info");
     const role         = localStorage.getItem("user_role") || "owner";
